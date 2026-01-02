@@ -41,7 +41,7 @@ static const char *TAG = "DISPLAY_7SEG";
 // Опции для отладки (раскомментируй если нужно)
 #define INVERT_PATTERNS      // Инвертировать паттерны (для общего анода)
 #define REVERSE_BYTE_ORDER   // Отправлять байты в обратном порядке (MSB first)
-// #define REVERSE_DIGIT_ORDER  // Отправлять цифры в обратном порядке (справа налево)
+#define REVERSE_DIGIT_ORDER  // Отправлять цифры в обратном порядке (справа налево)
 
 // Кодировка цифр для 7-сегментного дисплея
 // Сегменты: A B C D E F G DP
@@ -62,8 +62,8 @@ const uint8_t digitPatterns[10] = {
 };
 // Маппинг позиций дисплея (если порядок разрядов нестандартный)
 // По умолчанию: 0,1,2,3,4,5 (слева направо)
-// Пробуем нестандартный порядок RobotDyn: 2,1,0,5,4,3
-static const uint8_t digitMapping[6] = {2, 1, 0, 5, 4, 3};
+// Стандартный порядок
+static const uint8_t digitMapping[6] = {0, 1, 2, 3, 4, 5};
 
 // Инициализация GPIO пина
 static void init_gpio_pin(gpio_num_t pin)
