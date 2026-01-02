@@ -16,15 +16,55 @@ extern "C" void app_main(void)
   // Инициализация 7-сегментного дисплея
   display_7seg_init();
 
-  ESP_LOGI(TAG, "Готово! Показываю число 444444");
+  ESP_LOGI(TAG, "Готово! Перебираю все сегменты на каждой позиции");
 
-  // Паттерн цифры 4
-  uint8_t digit_4 = SEG_B | SEG_C | SEG_F | SEG_G;
+  // Массив всех сегментов
+  uint8_t segments[] = {
+    SEG_A,   // 0
+    SEG_B,   // 1
+    SEG_C,   // 2
+    SEG_D,   // 3
+    SEG_E,   // 4
+    SEG_F,   // 5
+    SEG_G,   // 6
+    SEG_DP   // 7
+  };
+  
+  const char* segment_names[] = {
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "DP"
+  };
 
   while (1)
   {
-    // Показываем 444444 на всех позициях
-    display_7seg_show_number(444444);
-    vTaskDelay(pdMS_TO_TICKS(1000)); // Обновление каждую секунду
+    // Для каждой позиции (0-5)
+    for (int pos = 0; pos < 6; pos++)
+    {
+      ESP_LOGI(TAG, "Позиция %d", pos);
+      
+      // Показываем каждый сегмент по очереди на этой позиции
+      for (int seg = 0; seg < 8; seg++)
+      {
+        uint8_t digits[6] = {0, 0, 0, 0, 0, 0}; // Все позиции пустые
+        digits[pos] = segments[seg];            // На текущей позиции - сегмент
+        
+        display_7seg_show_direct(digits);
+        ESP_LOGI(TAG, "Позиция %d: сегмент %s", pos, segment_names[seg]);
+        vTaskDelay(pdMS_TO_TICKS(500)); // Задержка 500мс
+      }
+      
+      // Пауза между позициями
+      vTaskDelay(pdMS_TO_TICKS(500));
+    }
+    
+    // Пауза перед повторением цикла
+    ESP_LOGI(TAG, "--- Цикл завершен, начинаю заново ---");
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
