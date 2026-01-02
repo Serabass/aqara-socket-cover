@@ -23,8 +23,8 @@ extern "C" void app_main(void)
 
   while (1)
   {
-    // Показываем 123456 на всех позициях
-    display_7seg_show_number(654321);
+    // Показываем 444444 на всех позициях
+    display_7seg_show_number(444444);
     vTaskDelay(pdMS_TO_TICKS(1000)); // Обновление каждую секунду
   }
 }

@@ -41,7 +41,7 @@ static const char *TAG = "DISPLAY_7SEG";
 // Опции для отладки (раскомментируй если нужно)
 #define INVERT_PATTERNS      // Инвертировать паттерны (для общего анода)
 #define REVERSE_BYTE_ORDER   // Отправлять байты в обратном порядке (MSB first)
-#define REVERSE_DIGIT_ORDER  // Отправлять цифры в обратном порядке (справа налево)
+// #define REVERSE_DIGIT_ORDER  // Отправлять цифры в обратном порядке (справа налево)
 
 // Кодировка цифр для 7-сегментного дисплея
 // Сегменты: A B C D E F G DP
