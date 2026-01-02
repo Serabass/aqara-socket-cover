@@ -1,0 +1,475 @@
+#include <WiFi.h>
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
+
+// WiFi настройки - замени на свои
+const char *ssid = "MikroTik-9DA0AC";
+const char *password = "MYZLMGFPT3";
+
+// Home Assistant REST API настройки
+const char *ha_server = "192.168.88.13";
+const int ha_port = 30123;                                                                                                                                                                                        // Порт Home Assistant (обычно 8123)
+const char *ha_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkZWU1MDMxNTUwOGM0OGVkOGYzOTVjNTJkOTM1YzllMCIsImlhdCI6MTc2NzI3MjUxMywiZXhwIjoyMDgyNjMyNTEzfQ.hSO2cB2AGafJQgpSCoRIS9B2tlsBHoO-Iv83sjfplDs"; // Long-Lived Access Token из HA
+// Entity ID устройства в Home Assistant (найди в HA: Настройки -> Устройства и службы -> Zigbee2MQTT)
+// Обычно что-то вроде: "sensor.conditioner_socket_power" или "sensor.pc_socket_power"
+const char *ha_entity_id = "sensor.conditioner_socket_power";
+
+// Переменная для хранения мощности (в ваттах)
+float powerWatts = 0.0;
+bool powerReceived = false; // Флаг, что данные были получены хотя бы раз
+
+// ========== ПОДКЛЮЧЕНИЕ 7-СЕГМЕНТНЫХ ДИСПЛЕЕВ ==========
+//
+// У тебя 2 дисплея (левый и правый), каждый на 3 цифры
+// Левый дисплей показывает первые 3 цифры числа
+// Правый дисплей показывает последние 3 цифры числа
+//
+// КАЖДЫЙ дисплей имеет свои пины: DIO, SCK, RCK, GND, +5V
+//
+// ПОДКЛЮЧЕНИЕ ЛЕВОГО ДИСПЛЕЯ:
+//   DIO  → GPIO 23 (ESP32)  → Data In (DS/SER на сдвиговом регистре)
+//   SCK  → GPIO 18 (ESP32)  → Serial Clock (SH_CP/CLK на сдвиговом регистре)
+//   RCK  → GPIO 19 (ESP32)  → Register Clock/Latch (ST_CP/LATCH на сдвиговом регистре)
+//   GND  → GND (ESP32)      → Общий провод (земля) - ОБЯЗАТЕЛЬНО общий с ESP32!
+//   +5V  → ВАРИАНТ 1: ВНЕШНИЙ ИСТОЧНИК 5V (рекомендуется)
+//          ВАРИАНТ 2: 3.3V (ESP32) - попробуй, может работать (см. ниже)
+//
+// ПОДКЛЮЧЕНИЕ ПРАВОГО ДИСПЛЕЯ:
+//   DIO  → GPIO 25 (ESP32)  → Data In (DS/SER на сдвиговом регистре)
+//   SCK  → GPIO 26 (ESP32)  → Serial Clock (SH_CP/CLK на сдвиговом регистре)
+//   RCK  → GPIO 27 (ESP32)  → Register Clock/Latch (ST_CP/LATCH на сдвиговом регистре)
+//   GND  → GND (ESP32)      → Общий провод (земля) - ОБЯЗАТЕЛЬНО общий с ESP32!
+//   +5V  → ВАРИАНТ 1: ВНЕШНИЙ ИСТОЧНИК 5V (рекомендуется)
+//          ВАРИАНТ 2: 3.3V (ESP32) - попробуй, может работать (см. ниже)
+//
+// ВАРИАНТ 1: ПИТАНИЕ ОТ 5V (РЕКОМЕНДУЕТСЯ):
+//   - ESP32 работает на 3.3V и НЕ имеет выхода 5V
+//   - Для питания дисплеев нужен ВНЕШНИЙ источник 5V:
+//     * USB блок питания 5V (например, от зарядки телефона)
+//     * Блок питания 5V с разъемом DC
+//     * Преобразователь 3.3V → 5V (если питаешь ESP32 от батареи)
+//   - GND ОБЯЗАТЕЛЬНО должен быть общий между ESP32 и дисплеями!
+//   - +5V можно общий для обоих дисплеев, если источник выдержит ток
+//
+// ВАРИАНТ 2: ПИТАНИЕ ОТ 3.3V (ЭКСПЕРИМЕНТАЛЬНО):
+//   - Можно попробовать подключить +5V дисплея к 3.3V ESP32
+//   - МНОГИЕ сдвиговые регистры (74HC595, 74HC164 и т.д.) РАБОТАЮТ от 3.3V!
+//   - Проверь даташит своей микросхемы - там указан диапазон питания (обычно 2V-6V)
+//   - ПРЕИМУЩЕСТВА: не нужен внешний источник, проще подключение
+//   - НЕДОСТАТКИ:
+//     * Яркость дисплея может быть меньше (LED работают от меньшего напряжения)
+//     * Может не работать вообще, если микросхема требует строго 5V
+//     * Риск перегрузки ESP32 по току (если дисплеи жрут много)
+//   - ВАЖНО: GND все равно должен быть общий с ESP32!
+//   - Если не работает или дисплей тусклый - вернись к варианту 1 (5V)
+//
+// ВАЖНО ПРО ЛОГИЧЕСКИЕ УРОВНИ:
+//   - ESP32 выдает сигналы 3.3V на GPIO пинах
+//   - Если питаешь сдвиговый регистр от 3.3V - логические уровни совпадают, все ОК
+//   - Если питаешь от 5V, но регистр поддерживает 3.3V логику - тоже должно работать
+//   - Если не работает - используй преобразователь уровня 3.3V → 5V для сигналов
+//     (например, модуль с логикой TXB0104 или просто резисторы-подтяжки)
+//
+// ДРУГИЕ НАСТРОЙКИ:
+//   - Если используешь другие GPIO пины - измени значения ниже
+
+// Левый дисплей - GPIO пины
+#define DISPLAY_LEFT_DIO 23 // Data In (DS/SER)
+#define DISPLAY_LEFT_SCK 18 // Serial Clock (SH_CP/CLK)
+#define DISPLAY_LEFT_RCK 19 // Register Clock/Latch (ST_CP/LATCH)
+
+// Правый дисплей - GPIO пины
+#define DISPLAY_RIGHT_DIO 25 // Data In (DS/SER)
+#define DISPLAY_RIGHT_SCK 26 // Serial Clock (SH_CP/CLK)
+#define DISPLAY_RIGHT_RCK 27 // Register Clock/Latch (ST_CP/LATCH)
+
+// Кодировка цифр для 7-сегментного дисплея (общий катод)
+// Сегменты: A B C D E F G DP (DP - точка)
+// Бит:      0 1 2 3 4 5 6 7
+// ВАЖНО: Если дисплей показывает херню - возможно у тебя общий анод!
+// Тогда нужно инвертировать все биты: ~digitPatterns[i]
+// Или поменять порядок сегментов, если они подключены по-другому
+const uint8_t digitPatterns[10] = {
+    0b11111100, // 0: A B C D E F
+    0b01100000, // 1: B C
+    0b11011010, // 2: A B D E G
+    0b11110010, // 3: A B C D G
+    0b01100110, // 4: B C F G
+    0b10110110, // 5: A C D F G
+    0b10111110, // 6: A C D E F G
+    0b11100000, // 7: A B C
+    0b11111110, // 8: A B C D E F G
+    0b11110110  // 9: A B C D F G
+};
+
+// Forward declaration
+bool fetchPowerFromHomeAssistant();
+void initDisplay();
+void displayNumber(float number);
+void shiftOutByte(uint8_t data, uint8_t dioPin, uint8_t sckPin);
+void updateDisplay(uint8_t digits[6]);
+void clearDisplay(); // Очистка дисплея
+void testSegments(); // Тест каждого сегмента
+
+void setup_wifi()
+{
+  delay(10);
+  Serial.println();
+  Serial.print("Подключаюсь к WiFi: ");
+  Serial.println(ssid);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi подключен!");
+  Serial.print("IP адрес: ");
+  Serial.println(WiFi.localIP());
+}
+
+// ========== ФУНКЦИИ ДЛЯ 7-СЕГМЕНТНОГО ДИСПЛЕЯ ==========
+
+// Инициализация пинов обоих дисплеев
+void initDisplay()
+{
+  // Левый дисплей
+  pinMode(DISPLAY_LEFT_DIO, OUTPUT);
+  pinMode(DISPLAY_LEFT_SCK, OUTPUT);
+  pinMode(DISPLAY_LEFT_RCK, OUTPUT);
+
+  digitalWrite(DISPLAY_LEFT_DIO, LOW);
+  digitalWrite(DISPLAY_LEFT_SCK, LOW);
+  digitalWrite(DISPLAY_LEFT_RCK, LOW);
+
+  // Правый дисплей
+  pinMode(DISPLAY_RIGHT_DIO, OUTPUT);
+  pinMode(DISPLAY_RIGHT_SCK, OUTPUT);
+  pinMode(DISPLAY_RIGHT_RCK, OUTPUT);
+
+  digitalWrite(DISPLAY_RIGHT_DIO, LOW);
+  digitalWrite(DISPLAY_RIGHT_SCK, LOW);
+  digitalWrite(DISPLAY_RIGHT_RCK, LOW);
+
+  Serial.println("✅ Оба дисплея инициализированы");
+}
+
+// Отправка одного байта в сдвиговый регистр (универсальная функция)
+void shiftOutByte(uint8_t data, uint8_t dioPin, uint8_t sckPin)
+{
+  // Пробуем LSB first (младший бит первым) - некоторые регистры работают так
+  for (int i = 0; i < 8; i++)
+  {
+    digitalWrite(dioPin, (data >> i) & 0x01);
+
+    // Тактовый импульс
+    digitalWrite(sckPin, HIGH);
+    delayMicroseconds(5);
+    digitalWrite(sckPin, LOW);
+    delayMicroseconds(5);
+  }
+}
+
+// Очистка дисплея (все сегменты выключены)
+void clearDisplay()
+{
+  uint8_t emptyDigits[6] = {0, 0, 0, 0, 0, 0};
+  updateDisplay(emptyDigits);
+  delay(10);
+}
+
+// Обновление одного дисплея (3 цифры)
+void updateSingleDisplay(uint8_t digits[3], uint8_t dioPin, uint8_t sckPin, uint8_t rckPin)
+{
+  // ВАЖНО: Защелка должна быть LOW во время отправки данных
+  digitalWrite(rckPin, LOW);
+  delayMicroseconds(10); // Увеличил задержку для стабильности
+
+  // Пробуем отправлять цифры слева направо (первая цифра идет первой)
+  for (int i = 0; i < 3; i++)
+  {
+    shiftOutByte(digits[i], dioPin, sckPin);
+  }
+
+  // ВАЖНО: Включаем защелку ПОСЛЕ отправки всех данных
+  // Это переносит данные из сдвигового регистра в выходной регистр
+  digitalWrite(rckPin, HIGH);
+  delayMicroseconds(50); // Увеличил задержку для стабильности
+  digitalWrite(rckPin, LOW);
+  delayMicroseconds(10);
+}
+
+// Тест каждого сегмента отдельно
+void testSegments()
+{
+  Serial.println("=== ТЕСТ СЕГМЕНТОВ ===");
+
+  // Тест каждого сегмента (A, B, C, D, E, F, G, DP)
+  uint8_t segments[8] = {
+      0b00000001, // A (сегмент 0)
+      0b00000010, // B (сегмент 1)
+      0b00000100, // C (сегмент 2)
+      0b00001000, // D (сегмент 3)
+      0b00010000, // E (сегмент 4)
+      0b00100000, // F (сегмент 5)
+      0b01000000, // G (сегмент 6)
+      0b10000000  // DP (сегмент 7)
+  };
+
+  const char *segmentNames[8] = {"A", "B", "C", "D", "E", "F", "G", "DP"};
+
+  for (int seg = 0; seg < 8; seg++)
+  {
+    Serial.print("Тест сегмента ");
+    Serial.print(segmentNames[seg]);
+    Serial.print(" (бит ");
+    Serial.print(seg);
+    Serial.println(")");
+
+    // Показываем этот сегмент на всех 6 цифрах
+    uint8_t testDigits[6];
+    for (int i = 0; i < 6; i++)
+    {
+      testDigits[i] = segments[seg];
+    }
+    updateDisplay(testDigits);
+    delay(1000);
+  }
+
+  Serial.println("=== ТЕСТ СЕГМЕНТОВ ЗАВЕРШЕН ===");
+  clearDisplay();
+}
+
+// Обновление обоих дисплеев (6 цифр)
+// digits[0] - самая левая цифра, digits[5] - самая правая
+// ИСПРАВЛЕНО: дисплеи были перепутаны местами!
+// digits[0-2] идут на ПРАВЫЙ дисплей, digits[3-5] на ЛЕВЫЙ
+void updateDisplay(uint8_t digits[6])
+{
+  uint8_t leftDigits[3] = {digits[0], digits[1], digits[2]};
+  uint8_t rightDigits[3] = {digits[3], digits[4], digits[5]};
+
+  // ИСПРАВЛЕНО: поменял местами левый и правый дисплеи
+  // Теперь digits[0-2] идут на правый дисплей, digits[3-5] на левый
+  updateSingleDisplay(leftDigits, DISPLAY_RIGHT_DIO, DISPLAY_RIGHT_SCK, DISPLAY_RIGHT_RCK);
+  updateSingleDisplay(rightDigits, DISPLAY_LEFT_DIO, DISPLAY_LEFT_SCK, DISPLAY_LEFT_RCK);
+}
+
+// Отображение числа на дисплее (до 6 цифр)
+// invertPatterns = true для общего анода (инвертирует все биты)
+void displayNumber(float number, bool invertPatterns = false)
+{
+  uint8_t digits[6] = {0, 0, 0, 0, 0, 0};
+
+  // Ограничиваем диапазон (0-999999)
+  if (number < 0)
+    number = 0;
+  if (number > 999999)
+    number = 999999;
+
+  // Преобразуем в целое число (отбрасываем дробную часть для простоты)
+  // Или можно сделать с точкой, но это сложнее
+  int intValue = (int)number;
+
+  // Если число 0, показываем хотя бы одну цифру
+  if (intValue == 0)
+  {
+    digits[5] = invertPatterns ? ~digitPatterns[0] : digitPatterns[0];
+    updateDisplay(digits);
+    return;
+  }
+
+  // Разбиваем число на цифры (справа налево)
+  int pos = 5; // Начинаем с правой позиции
+  while (intValue > 0 && pos >= 0)
+  {
+    int digit = intValue % 10;
+    digits[pos] = invertPatterns ? ~digitPatterns[digit] : digitPatterns[digit];
+    intValue /= 10;
+    pos--;
+  }
+
+  // Обновляем дисплей
+  updateDisplay(digits);
+}
+
+// Функция для получения текущего значения мощности из Home Assistant через REST API
+bool fetchPowerFromHomeAssistant()
+{
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.println("❌ WiFi не подключен, не могу запросить данные из HA");
+    return false;
+  }
+
+  HTTPClient http;
+  String url = "http://";
+  url += ha_server;
+  url += ":";
+  url += ha_port;
+  url += "/api/states/";
+  url += ha_entity_id;
+
+  Serial.print("🌐 Запрашиваю данные из Home Assistant: ");
+  Serial.println(url);
+
+  http.begin(url);
+  http.addHeader("Authorization", String("Bearer ") + ha_token);
+  http.addHeader("Content-Type", "application/json");
+
+  int httpCode = http.GET();
+
+  if (httpCode == HTTP_CODE_OK)
+  {
+    String payload = http.getString();
+    Serial.print("✅ Получен ответ от HA (");
+    Serial.print(payload.length());
+    Serial.println(" байт)");
+
+    // Выводим первые 300 символов для отладки
+    if (payload.length() > 300)
+    {
+      Serial.print("📄 JSON (первые 300 символов): ");
+      Serial.println(payload.substring(0, 300));
+    }
+    else
+    {
+      Serial.print("📄 JSON: ");
+      Serial.println(payload);
+    }
+
+    // Парсим JSON ответ от Home Assistant
+    // Увеличиваем буфер - HA возвращает много атрибутов
+    StaticJsonDocument<2048> doc;
+    DeserializationError error = deserializeJson(doc, payload);
+
+    if (error)
+    {
+      Serial.print("❌ Ошибка парсинга JSON от HA: ");
+      Serial.println(error.c_str());
+      http.end();
+      return false;
+    }
+
+    // Home Assistant возвращает структуру:
+    // {
+    //   "state": "123.45",  // строка с числом
+    //   "attributes": { ... }
+    // }
+    if (doc.containsKey("state"))
+    {
+      const char *stateStr = doc["state"].as<const char *>();
+      if (stateStr != nullptr && strlen(stateStr) > 0)
+      {
+        // Пробуем распарсить как число
+        float newPower = atof(stateStr);
+        if (newPower >= 0) // Валидное значение
+        {
+          powerWatts = newPower;
+          powerReceived = true;
+          Serial.print("✅ Мощность из HA: ");
+          Serial.print(powerWatts);
+          Serial.println(" Вт");
+
+          // Также выводим атрибуты, если есть
+          if (doc.containsKey("attributes"))
+          {
+            JsonObject attrs = doc["attributes"];
+            if (attrs.containsKey("unit_of_measurement"))
+            {
+              Serial.print("   Единица измерения: ");
+              Serial.println(attrs["unit_of_measurement"].as<const char *>());
+            }
+          }
+
+          http.end();
+          return true;
+        }
+        else
+        {
+          Serial.print("⚠️  Состояние в HA: '");
+          Serial.print(stateStr);
+          Serial.println("' (не число или недоступно)");
+        }
+      }
+    }
+    else
+    {
+      Serial.println("❌ Поле 'state' не найдено в ответе HA");
+    }
+  }
+  else if (httpCode == HTTP_CODE_UNAUTHORIZED)
+  {
+    Serial.println("❌ Ошибка авторизации в HA (проверь токен!)");
+  }
+  else if (httpCode == HTTP_CODE_NOT_FOUND)
+  {
+    Serial.print("❌ Entity не найден в HA: ");
+    Serial.println(ha_entity_id);
+    Serial.println("   Проверь правильность entity_id в настройках");
+  }
+  else
+  {
+    Serial.print("❌ HTTP ошибка: ");
+    Serial.println(httpCode);
+    Serial.print("   Ответ: ");
+    Serial.println(http.getString());
+  }
+
+  http.end();
+  return false;
+}
+
+void setup()
+{
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial.println("=== ПРОСТОЙ ТЕСТ: Цифры 1-6 на всех дисплеях ===");
+
+  // Инициализируем дисплей
+  initDisplay();
+  delay(100);
+
+  Serial.println("Инициализация завершена, начинаю вывод цифр 1-6");
+}
+
+void loop()
+{
+  static unsigned long lastChange = 0;
+  static int testPos = 0;
+
+  if (millis() - lastChange > 3000) // Меняем позицию каждые 3 секунды
+  {
+    lastChange = millis();
+    testPos = (testPos + 1) % 6;
+
+    Serial.print("Позиция массива [");
+    Serial.print(testPos);
+    Serial.println("] - цифра 8 (инвертированный паттерн)");
+    Serial.print("  Должно отобразиться на дисплее: ");
+    if (testPos < 3)
+    {
+      Serial.print("ПРАВЫЙ дисплей, позиция ");
+      Serial.println(testPos + 1);
+    }
+    else
+    {
+      Serial.print("ЛЕВЫЙ дисплей, позиция ");
+      Serial.println(testPos - 2);
+    }
+  }
+
+  // Показываем цифру 8 на одной позиции, остальные пустые
+  // Используем инвертированные паттерны, так как вариант 1 работал
+  uint8_t digits[6] = {0, 0, 0, 0, 0, 0};
+  digits[testPos] = ~digitPatterns[8]; // Цифра 8 - все сегменты
+
+  updateDisplay(digits);
+  delay(100);
+}

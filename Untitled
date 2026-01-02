@@ -1,0 +1,1 @@
+pio run --target upload --target monitor --environment nanoesp32-c6 

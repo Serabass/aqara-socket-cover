@@ -1,0 +1,147 @@
+// Простейшая программа для отображения 888 888 на дисплеях
+#include <Arduino.h>
+
+// ========== ПОДКЛЮЧЕНИЕ ДИСПЛЕЕВ ==========
+//
+// У тебя 2 дисплея (левый и правый), каждый на 3 цифры
+// КАЖДЫЙ дисплей имеет свои пины: DIO, SCK, RCK, GND, +5V
+//
+// ПОДКЛЮЧЕНИЕ ЛЕВОГО ДИСПЛЕЯ:
+//   DIO  → GPIO 23 (ESP32)  → Data In (DS/SER на сдвиговом регистре 74HC595)
+//   SCK  → GPIO 18 (ESP32)  → Serial Clock (SH_CP/CLK на 74HC595)
+//   RCK  → GPIO 19 (ESP32)  → Register Clock/Latch (ST_CP/LATCH на 74HC595)
+//   GND  → GND (ESP32)      → Общий провод (земля) - можно в любой GND пин на ESP32
+//   +3.3V → 3.3V (ESP32) - для стабильности добавь конденсатор 470-1000 µF между 3.3V и GND
+//
+// ПОДКЛЮЧЕНИЕ ПРАВОГО ДИСПЛЕЯ:
+//   DIO  → GPIO 25 (ESP32)  → Data In (DS/SER на сдвиговом регистре 74HC595)
+//   SCK  → GPIO 26 (ESP32)  → Serial Clock (SH_CP/CLK на 74HC595)
+//   RCK  → GPIO 27 (ESP32)  → Register Clock/Latch (ST_CP/LATCH на 74HC595)
+//   GND  → GND (ESP32)      → Общий провод (земля) - можно в любой GND пин на ESP32
+//   +3.3V → 3.3V (ESP32) - для стабильности добавь конденсатор 470-1000 µF между 3.3V и GND
+//
+// ВАЖНО:
+//   - GND ОБЯЗАТЕЛЬНО должен быть общий между ESP32 и обоими дисплеями!
+//   - Можно подключать GND дисплеев в разные GND пины на ESP32 (слева и справа) -
+//     все GND пины на ESP32 соединены между собой, это нормально!
+//   - Если дисплей не работает - попробуй поменять +5V на 3.3V (ESP32)
+//   - Проверь, что все провода надежно подключены
+//   - Если используешь другие GPIO пины - измени значения ниже
+
+// Левый дисплей - GPIO пины
+#define DISPLAY_LEFT_DIO 23 // Data In (DS/SER)
+#define DISPLAY_LEFT_SCK 18 // Serial Clock (SH_CP/CLK)
+#define DISPLAY_LEFT_RCK 19 // Register Clock/Latch (ST_CP/LATCH)
+
+// Правый дисплей - GPIO пины
+#define DISPLAY_RIGHT_DIO 25 // Data In (DS/SER)
+#define DISPLAY_RIGHT_SCK 26 // Serial Clock (SH_CP/CLK)
+#define DISPLAY_RIGHT_RCK 27 // Register Clock/Latch (ST_CP/LATCH)
+
+// Кодировка цифр для 7-сегментного дисплея
+// Сегменты: A B C D E F G DP
+// Бит:      0 1 2 3 4 5 6 7
+// Паттерны для общего катода (инвертируем для общего анода)
+const uint8_t digitPatterns[10] = {
+    0b00111111, // 0
+    0b00000110, // 1
+    0b01011011, // 2
+    0b01001111, // 3
+    0b01100110, // 4
+    0b01101101, // 5
+    0b01111101, // 6
+    0b00000111, // 7
+    0b01111111, // 8
+    0b01101111  // 9
+};
+
+// Отправка одного байта в сдвиговый регистр
+// Медленная передача для работы на 3.3V (delayMicroseconds 10)
+void shiftOutByte(uint8_t data, uint8_t dioPin, uint8_t sckPin)
+{
+  // MSB first с увеличенными задержками для стабильности на 3.3V
+  for (int i = 7; i >= 0; i--)
+  {
+    digitalWrite(dioPin, (data >> i) & 0x01);
+    digitalWrite(sckPin, HIGH);
+    delayMicroseconds(10); // Увеличенная задержка для стабильности на 3.3V
+    digitalWrite(sckPin, LOW);
+    delayMicroseconds(10); // Увеличенная задержка для стабильности на 3.3V
+  }
+}
+
+// Обновление одного дисплея (3 цифры)
+void updateSingleDisplay(uint8_t digits[3], uint8_t dioPin, uint8_t sckPin, uint8_t rckPin)
+{
+  digitalWrite(rckPin, LOW);
+  delayMicroseconds(20); // Увеличенная задержка для стабильности
+
+  // Отправляем цифры в ОБРАТНОМ порядке (2, 1, 0) - вернемся к рабочей комбинации
+  for (int i = 2; i >= 0; i--)
+  {
+    shiftOutByte(digits[i], dioPin, sckPin);
+  }
+
+  digitalWrite(rckPin, HIGH);
+  delayMicroseconds(100); // Увеличенная задержка для стабильности
+  digitalWrite(rckPin, LOW);
+  delayMicroseconds(20); // Увеличенная задержка для стабильности
+}
+
+// Обновление обоих дисплеев
+// digits[0-2] идут на левый дисплей, digits[3-5] на правый
+void updateDisplay(uint8_t digits[6])
+{
+  uint8_t leftDigits[3] = {digits[0], digits[1], digits[2]};
+  uint8_t rightDigits[3] = {digits[3], digits[4], digits[5]};
+
+  // Пробуем: leftDigits на левый дисплей, rightDigits на правый
+  updateSingleDisplay(leftDigits, DISPLAY_LEFT_DIO, DISPLAY_LEFT_SCK, DISPLAY_LEFT_RCK);
+  updateSingleDisplay(rightDigits, DISPLAY_RIGHT_DIO, DISPLAY_RIGHT_SCK, DISPLAY_RIGHT_RCK);
+}
+
+void setup()
+{
+  Serial.begin(115200);
+  delay(1000);
+
+  Serial.println("Инициализация дисплеев...");
+
+  // Инициализация пинов левого дисплея
+  pinMode(DISPLAY_LEFT_DIO, OUTPUT);
+  pinMode(DISPLAY_LEFT_SCK, OUTPUT);
+  pinMode(DISPLAY_LEFT_RCK, OUTPUT);
+  digitalWrite(DISPLAY_LEFT_DIO, LOW);
+  digitalWrite(DISPLAY_LEFT_SCK, LOW);
+  digitalWrite(DISPLAY_LEFT_RCK, LOW);
+
+  // Инициализация пинов правого дисплея
+  pinMode(DISPLAY_RIGHT_DIO, OUTPUT);
+  pinMode(DISPLAY_RIGHT_SCK, OUTPUT);
+  pinMode(DISPLAY_RIGHT_RCK, OUTPUT);
+  digitalWrite(DISPLAY_RIGHT_DIO, LOW);
+  digitalWrite(DISPLAY_RIGHT_SCK, LOW);
+  digitalWrite(DISPLAY_RIGHT_RCK, LOW);
+}
+
+void loop()
+{
+  // Рабочая комбинация: MSB first + обратный порядок байтов
+  // Пробуем показать 888 на обоих дисплеях с инверсией (общий анод)
+  // Обновление не чаще 10-20 Гц (50-100ms) для стабильности на 3.3V
+  uint8_t leftDigits[3];
+  leftDigits[0] = 0xFF & (~digitPatterns[8]); // Первая позиция - 8 (С инверсией)
+  leftDigits[1] = 0xFF & (~digitPatterns[8]); // Вторая позиция - 8 (С инверсией)
+  leftDigits[2] = 0xFF & (~digitPatterns[8]); // Третья позиция - 8 (С инверсией)
+
+  uint8_t rightDigits[3];
+  rightDigits[0] = 0xFF & (~digitPatterns[8]); // Первая позиция - 8 (С инверсией)
+  rightDigits[1] = 0xFF & (~digitPatterns[8]); // Вторая позиция - 8 (С инверсией)
+  rightDigits[2] = 0xFF & (~digitPatterns[8]); // Третья позиция - 8 (С инверсией)
+
+  // Обновляем оба дисплея
+  updateSingleDisplay(leftDigits, DISPLAY_LEFT_DIO, DISPLAY_LEFT_SCK, DISPLAY_LEFT_RCK);
+  updateSingleDisplay(rightDigits, DISPLAY_RIGHT_DIO, DISPLAY_RIGHT_SCK, DISPLAY_RIGHT_RCK);
+
+  delay(50); // 20 Гц (50ms) - частота обновления для стабильности на 3.3V
+}
