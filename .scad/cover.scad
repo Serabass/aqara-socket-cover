@@ -91,12 +91,13 @@ module main_case() {
     //    cube([5, 2, bottom_thickness + 1]);
 
     // Вентиляционные отверстия (опционально)
-    for (i = [1:9]) {
-      for (j = [1:19]) {
-        translate([outer_w / 2 + i * (inner_w / 20), wall_thickness + j * (inner_l / 20), 1])
-          cylinder(h=3, d=1, center=true);
+    translate([-5, 0, 0])
+      for (i = [1:9]) {
+        for (j = [1:19]) {
+          translate([outer_w / 2 + i * (inner_w / 20), wall_thickness + j * (inner_l / 20), 1])
+            cylinder(h=3, d=1, center=true);
+        }
       }
-    }
   }
 
   // Бобышки с отверстиями для винтов (4 штуки по углам на верхней части)
