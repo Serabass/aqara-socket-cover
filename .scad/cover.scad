@@ -166,7 +166,7 @@ module main_case() {
     translate([-5, 0, 0])for (i = [1:9]) {
       for (j = [1:19]) {
         translate([outer_w / 2 + i * (inner_w / 20), wall_thickness + j * (inner_l / 20), 1])
-          cylinder(h=3, d=1, center=true);
+          cylinder(h=3, d=1.5, center=true);
       }
     }
   }
@@ -179,14 +179,45 @@ module main_case() {
     [outer_w - 5, outer_l - 5],
   ];
 
+  i = 0;
+
   for (pos = screw_positions) {
     translate([pos[0], pos[1], 0]) {
       difference() {
         cylinder(h=screw_boss_h, d=screw_boss_d);
+
         translate([0, 0, -0.5])
           cylinder(h=screw_boss_h + 1, d=screw_hole_d);
       }
+      //rotate([0, -90, 0])
+      //  screw_fill_rotate(i) {
+      //    #wedge(screw_boss_h, 3, 3, "x");
+      //  }
     }
+    i = i + 1;
+  }
+}
+
+module screw_fill_rotate(i) {
+  if (i == 0) {
+    translate([0, 110, 0])
+      rotate([0, 0, 0])
+        children(0);
+  }
+  else if (i == 1) {
+    rotate([0, 0, 0])
+      children(0);
+  }
+  else if (i == 2) {
+    rotate([0, 0, 0])
+      children(0);
+  }
+  else if (i == 3) {
+    rotate([0, 0, 0])
+      children(0);
+  }
+  else {
+    children(0);
   }
 }
 
@@ -285,6 +316,11 @@ module aqara_rim() {
   }
 }
 
+module aqara_logo() {
+  linear_extrude(height=2)
+    import("aqara_logo.svg", center=true);
+}
+
 // ===== СБОРКА =====
 
 // Основной корпус
@@ -293,3 +329,7 @@ translate([0, 0, 0])
 
 translate([-31.3, outer_l / 2, 0])
   aqara_rim();
+
+translate([59, outer_l / 2, outer_h / 2])
+  rotate([90, 0, 90])
+    aqara_logo();
