@@ -86,3 +86,5 @@ pio device monitor
    - Проверь IP адрес и порт Home Assistant
    - Проверь токен доступа
    - Проверь Entity ID сенсора
+
+https://kaspi.kz/shop/p/modul-displeja-arduino-i2c-116737351/?ref=shared_link

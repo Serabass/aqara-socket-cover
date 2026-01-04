@@ -62,6 +62,78 @@ module rounded_box(w, l, h, r) {
   }
 }
 
+// Клин (половина куба по диагонали) - "трамплин"
+// w - ширина, l - длина, h - высота
+// direction - направление скоса: "x" (по оси X), "y" (по оси Y), или "xy" (по обеим)
+// Альтернативный простой способ через linear_extrude:
+// module wedge_simple(w, l, h) {
+//   linear_extrude(height=h, scale=[1, 0]) {
+//     square([w, l]);
+//   }
+// }
+module wedge(w, l, h, direction = "x") {
+  if (direction == "x") {
+    // Скос по оси X (от одного края к другому)
+    polyhedron(
+      points=[
+        [0, 0, 0], // 0
+        [w, 0, 0], // 1
+        [w, l, 0], // 2
+        [0, l, 0], // 3
+        [0, 0, h], // 4
+        [w, 0, h], // 5
+      ],
+      faces=[
+        [0, 1, 2, 3], // низ
+        [0, 4, 5, 1], // перед
+        [2, 1, 5], // правая сторона (треугольник)
+        [3, 2, 5, 4, 0], // левая сторона + верх (пятиугольник)
+        [3, 0, 4], // левая сторона (треугольник)
+        [2, 3, 4, 5], // верх (четырехугольник)
+      ]
+    );
+  } else if (direction == "y") {
+    // Скос по оси Y
+    polyhedron(
+      points=[
+        [0, 0, 0], // 0
+        [w, 0, 0], // 1
+        [w, l, 0], // 2
+        [0, l, 0], // 3
+        [0, 0, h], // 4
+        [0, l, h], // 5
+      ],
+      faces=[
+        [0, 1, 2, 3], // низ
+        [0, 4, 5, 3], // левая сторона
+        [1, 0, 3, 2], // перед
+        [2, 3, 5], // правая сторона (треугольник)
+        [1, 2, 5, 4, 0], // правая сторона + верх (пятиугольник)
+        [1, 0, 4], // перед (треугольник)
+        [2, 1, 4, 5], // верх (четырехугольник)
+      ]
+    );
+  } else if (direction == "xy") {
+    // Скос по обеим осям (угол)
+    polyhedron(
+      points=[
+        [0, 0, 0], // 0
+        [w, 0, 0], // 1
+        [w, l, 0], // 2
+        [0, l, 0], // 3
+        [0, 0, h], // 4
+      ],
+      faces=[
+        [0, 1, 2, 3], // низ
+        [0, 4, 1], // перед (треугольник)
+        [2, 1, 4], // правая сторона (треугольник)
+        [3, 2, 4], // задняя сторона (треугольник)
+        [3, 0, 4], // левая сторона (треугольник)
+      ]
+    );
+  }
+}
+
 // ===== ОСНОВНОЙ КОРПУС =====
 module main_case() {
   difference() {
@@ -91,13 +163,12 @@ module main_case() {
     //    cube([5, 2, bottom_thickness + 1]);
 
     // Вентиляционные отверстия (опционально)
-    translate([-5, 0, 0])
-      for (i = [1:9]) {
-        for (j = [1:19]) {
-          translate([outer_w / 2 + i * (inner_w / 20), wall_thickness + j * (inner_l / 20), 1])
-            cylinder(h=3, d=1, center=true);
-        }
+    translate([-5, 0, 0])for (i = [1:9]) {
+      for (j = [1:19]) {
+        translate([outer_w / 2 + i * (inner_w / 20), wall_thickness + j * (inner_l / 20), 1])
+          cylinder(h=3, d=1, center=true);
       }
+    }
   }
 
   // Бобышки с отверстиями для винтов (4 штуки по углам на верхней части)
@@ -105,7 +176,7 @@ module main_case() {
     [5, 5],
     [outer_w - 5, 5],
     [5, outer_l - 5],
-    [outer_w - 5, outer_l - 5]
+    [outer_w - 5, outer_l - 5],
   ];
 
   for (pos = screw_positions) {
@@ -199,6 +270,19 @@ module aqara_rim() {
   //        translate([rim_outer_d/2 - rim_thickness/2, 0, 0])
   //            cube([rim_thickness, outer_w/2 + 5, rim_height], center = true);
   //}
+  {
+    translate([rim_outer_d / 2, 10, 0])
+      rotate([90, 0, 0])
+        rotate([0, 0, 90])
+          translate([0, 0, -rim_height / 2])
+            wedge(rim_height, 9, 18, "x");
+
+    translate([rim_outer_d / 2, -10, 0])
+      rotate([90, 0, 0])
+        rotate([0, 0, 90])
+          translate([0, 0, rim_height / 2])
+            wedge(rim_height, 9, -18, "x");
+  }
 }
 
 // ===== СБОРКА =====
@@ -207,5 +291,5 @@ module aqara_rim() {
 translate([0, 0, 0])
   main_case();
 
-translate([-32, outer_l / 2, 0])
+translate([-31.3, outer_l / 2, 0])
   aqara_rim();
