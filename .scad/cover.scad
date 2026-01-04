@@ -134,6 +134,20 @@ module wedge(w, l, h, direction = "x") {
   }
 }
 
+module screw_hole() {
+  union() {
+    difference() {
+      cylinder(h=screw_boss_h, d=screw_boss_d);
+
+      translate([0, 0, -0.5])
+        cylinder(h=screw_boss_h + 1, d=screw_hole_d);
+    }
+    translate([-3.3, -3.3, 0])
+      rotate([270, -90, 0])
+        #wedge(screw_boss_h, 4.8, 4.8, "x");
+  }
+}
+
 // ===== ОСНОВНОЙ КОРПУС =====
 module main_case() {
   difference() {
@@ -179,22 +193,22 @@ module main_case() {
     [outer_w - 5, outer_l - 5],
   ];
 
-  i = 0;
-
-  for (pos = screw_positions) {
-    translate([pos[0], pos[1], 0]) {
-      difference() {
-        cylinder(h=screw_boss_h, d=screw_boss_d);
-
-        translate([0, 0, -0.5])
-          cylinder(h=screw_boss_h + 1, d=screw_hole_d);
+  for (i = [0:3]) {
+    translate([screw_positions[i][0], screw_positions[i][1], 0]) {
+      if (i == 0) {
+        rotate([0, 0, 0])
+          screw_hole();
+      } else if (i == 1) {
+        rotate([0, 0, 90])
+          screw_hole();
+      } else if (i == 2) {
+        rotate([0, 0, 270])
+          screw_hole();
+      } else if (i == 3) {
+        rotate([0, 0, 180])
+          screw_hole();
       }
-      //rotate([0, -90, 0])
-      //  screw_fill_rotate(i) {
-      //    #wedge(screw_boss_h, 3, 3, "x");
-      //  }
     }
-    i = i + 1;
   }
 }
 
@@ -203,20 +217,16 @@ module screw_fill_rotate(i) {
     translate([0, 110, 0])
       rotate([0, 0, 0])
         children(0);
-  }
-  else if (i == 1) {
+  } else if (i == 1) {
     rotate([0, 0, 0])
       children(0);
-  }
-  else if (i == 2) {
+  } else if (i == 2) {
     rotate([0, 0, 0])
       children(0);
-  }
-  else if (i == 3) {
+  } else if (i == 3) {
     rotate([0, 0, 0])
       children(0);
-  }
-  else {
+  } else {
     children(0);
   }
 }
