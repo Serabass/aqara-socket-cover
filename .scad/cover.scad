@@ -15,9 +15,9 @@ esp32_usb_h = 5;      // Высота USB разъема
 
 oled_w = 27;          // Ширина OLED
 oled_l = 27;          // Длина OLED
-oled_h = 4;           // Высота OLED
-oled_display_w = 22;  // Ширина видимой области
-oled_display_l = 11;  // Длина видимой области
+oled_h = 1.6;           // Высота OLED
+oled_display_w = 22.7;  // Ширина видимой области (с зазором)
+oled_display_l = 12.2;  // Длина видимой области
 
 // ===== ПАРАМЕТРЫ КОРПУСА =====
 wall_thickness = 2;      // Толщина стенок
@@ -84,19 +84,6 @@ module main_case() {
         ])
             cube([5, 2, bottom_thickness + 1]);
         
-        // Крепежные отверстия (4 штуки по углам)
-        screw_positions = [
-            [5, 5],
-            [outer_w - 5, 5],
-            [5, outer_l - 5],
-            [outer_w - 5, outer_l - 5]
-        ];
-        
-        for (pos = screw_positions) {
-            translate([pos[0], pos[1], -0.5])
-                cylinder(h = outer_h + 1, d = screw_hole_d);
-        }
-        
         // Вентиляционные отверстия (опционально)
         for (i = [1:3]) {
             translate([outer_w/2, wall_thickness + i * (inner_l/4), outer_h - 2])
@@ -117,19 +104,6 @@ module lid() {
             -0.5
         ])
             rounded_box(oled_display_l + 4, oled_display_w + 4, top_thickness + 1, 1);
-        
-        // Крепежные отверстия
-        screw_positions = [
-            [5, 5],
-            [outer_w - 5, 5],
-            [5, outer_l - 5],
-            [outer_w - 5, outer_l - 5]
-        ];
-        
-        for (pos = screw_positions) {
-            translate([pos[0], pos[1], -0.5])
-                cylinder(h = top_thickness + 1, d = screw_hole_d);
-        }
     }
 }
 
@@ -178,36 +152,23 @@ module aqara_rim() {
             cube([15, 10, rim_height + 1], center = true);
     }
     
-    // Платформа для крепления основного корпуса
-    translate([0, 0, rim_height])
-        difference() {
-            // Основание платформы
-            rounded_box(outer_w + 6, outer_l + 6, mounting_platform_h, 2);
-            
-            // Отверстие под корпус (с зазором)
-            translate([0, 0, -0.5])
-                cube([outer_w + 1, outer_l + 1, mounting_platform_h + 1], center = true);
-            
-            // Крепежные отверстия для винтов (совпадают с отверстиями в корпусе)
-            screw_positions = [
-                [5, 5],
-                [outer_w - 5, 5],
-                [5, outer_l - 5],
-                [outer_w - 5, outer_l - 5]
-            ];
-            
-            for (pos = screw_positions) {
-                translate([pos[0] - outer_w/2, pos[1] - outer_l/2, -0.5])
-                    cylinder(h = mounting_platform_h + 1, d = screw_hole_d + 0.5);
-            }
-        }
-    
+   // // Платформа для крепления основного корпуса
+   // translate([0, 0, rim_height])
+   //     difference() {
+   //         // Основание платформы
+   //         rounded_box(outer_w + 6, outer_l + 6, mounting_platform_h, 2);
+   //         
+   //         // Отверстие под корпус (с зазором)
+   //         translate([0, 0, -0.5])
+   //             cube([outer_w + 1, outer_l + 1, mounting_platform_h + 1], center = true);
+   //     }
+   // 
     // Усиливающие ребра (4 штуки по углам)
-    for (angle = [0, 90, 180, 270]) {
-        rotate([0, 0, angle])
-            translate([rim_outer_d/2 - rim_thickness/2, 0, 0])
-                cube([rim_thickness, outer_w/2 + 5, rim_height], center = true);
-    }
+    //for (angle = [0, 90, 180, 270]) {
+    //    rotate([0, 0, angle])
+    //        translate([rim_outer_d/2 - rim_thickness/2, 0, 0])
+    //            cube([rim_thickness, outer_w/2 + 5, rim_height], center = true);
+    //}
 }
 
 // ===== СБОРКА =====
@@ -217,8 +178,8 @@ translate([0, 0, 0])
     main_case();
 
 // Крышка (раскомментируй для печати)
-// translate([0, outer_l + 30, 0])
-//     lid();
+ // translate([0, outer_l + 30, 0])
+ //     lid();
 
 // Адаптер для Aqara (раскомментируй для печати)
 // translate([outer_w + 30, 0, 0])

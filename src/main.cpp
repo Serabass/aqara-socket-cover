@@ -21,10 +21,10 @@
 #define HA_TOKEN "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkZWU1MDMxNTUwOGM0OGVkOGYzOTVjNTJkOTM1YzllMCIsImlhdCI6MTc2NzI3MjUxMywiZXhwIjoyMDgyNjMyNTEzfQ.hSO2cB2AGafJQgpSCoRIS9B2tlsBHoO-Iv83sjfplDs"  // Long-Lived Access Token
 
 // Entity ID сенсоров
-#define HA_ENTITY_POWER "sensor.conditioner_socket_power"
-#define HA_ENTITY_VOLTAGE "sensor.conditioner_socket_voltage"
-#define HA_ENTITY_CURRENT "sensor.conditioner_socket_current"
-#define HA_ENTITY_ENERGY "sensor.conditioner_socket_energy"
+#define HA_ENTITY_POWER "sensor.servers_socket_power"
+#define HA_ENTITY_VOLTAGE "sensor.servers_socket_voltage"
+#define HA_ENTITY_CURRENT "sensor.servers_socket_current"
+#define HA_ENTITY_ENERGY "sensor.servers_socket_energy"
 
 // OLED SSD1306 через I2C
 #define SCREEN_WIDTH 128
@@ -49,10 +49,22 @@ float voltage = 0.0f;
 float current = 0.0f;
 float energy = 0.0f;
 
+// Предыдущие значения для сравнения
+float prev_power = 0.0f;
+float prev_voltage = 0.0f;
+float prev_current = 0.0f;
+float prev_energy = 0.0f;
+
 bool power_valid = false;
 bool voltage_valid = false;
 bool current_valid = false;
 bool energy_valid = false;
+
+// Флаги для отслеживания первого обновления
+bool first_update_power = true;
+bool first_update_voltage = true;
+bool first_update_current = true;
+bool first_update_energy = true;
 
 unsigned long lastUpdate = 0;
 
@@ -88,6 +100,23 @@ void format_number(char* buffer, size_t size, float value) {
     }
 }
 
+// Функция для получения символа изменения значения
+char get_change_symbol(float current, float previous, bool is_first) {
+    if (is_first) {
+        return ' ';  // Первое обновление - без стрелки
+    }
+    
+    const float threshold = 0.01f;  // Порог для учета изменений (избегаем дрожания)
+    
+    if (current > previous + threshold) {
+        return '^';  // Стрелка вверх
+    } else if (current < previous - threshold) {
+        return 'v';  // Стрелка вниз
+    } else {
+        return ' ';  // Без изменений
+    }
+}
+
 void update_display() {
     display.clearDisplay();
     display.setTextSize(1);
@@ -101,7 +130,13 @@ void update_display() {
     if (power_valid) {
         format_number(buffer, sizeof(buffer), power);
         display.print(buffer);
-        display.print("W");
+        display.print(" W");
+        // Показываем стрелку изменения
+        char arrow = get_change_symbol(power, prev_power, first_update_power);
+        if (arrow != ' ') {
+            display.print(" ");
+            display.print(arrow);
+        }
     } else {
         display.print("    .00");
     }
@@ -112,7 +147,13 @@ void update_display() {
     if (voltage_valid) {
         format_number(buffer, sizeof(buffer), voltage);
         display.print(buffer);
-        display.print("V");
+        display.print(" V");
+        // Показываем стрелку изменения
+        char arrow = get_change_symbol(voltage, prev_voltage, first_update_voltage);
+        if (arrow != ' ') {
+            display.print(" ");
+            display.print(arrow);
+        }
     } else {
         display.print("    .00");
     }
@@ -123,7 +164,13 @@ void update_display() {
     if (energy_valid) {
         format_number(buffer, sizeof(buffer), energy);
         display.print(buffer);
-        display.print("kWh");
+        display.print(" kWh");
+        // Показываем стрелку изменения
+        char arrow = get_change_symbol(energy, prev_energy, first_update_energy);
+        if (arrow != ' ') {
+            display.print(" ");
+            display.print(arrow);
+        }
     } else {
         display.print("    .00");
     }
@@ -134,7 +181,13 @@ void update_display() {
     if (current_valid) {
         format_number(buffer, sizeof(buffer), current);
         display.print(buffer);
-        display.print("A");
+        display.print(" A");
+        // Показываем стрелку изменения
+        char arrow = get_change_symbol(current, prev_current, first_update_current);
+        if (arrow != ' ') {
+            display.print(" ");
+            display.print(arrow);
+        }
     } else {
         display.print("    .00");
     }
@@ -213,6 +266,10 @@ void loop() {
         // Запрашиваем все сенсоры
         if (ha_client_fetch_sensor(HA_ENTITY_POWER, &power)) {
             power_valid = true;
+            if (first_update_power) {
+                first_update_power = false;
+                prev_power = power;  // Первое значение = предыдущее
+            }
             Serial.printf("Мощность: %.1f Вт\n", power);
         } else {
             power_valid = false;
@@ -223,6 +280,10 @@ void loop() {
         
         if (ha_client_fetch_sensor(HA_ENTITY_VOLTAGE, &voltage)) {
             voltage_valid = true;
+            if (first_update_voltage) {
+                first_update_voltage = false;
+                prev_voltage = voltage;  // Первое значение = предыдущее
+            }
             Serial.printf("Напряжение: %.1f В\n", voltage);
         } else {
             voltage_valid = false;
@@ -233,6 +294,10 @@ void loop() {
         
         if (ha_client_fetch_sensor(HA_ENTITY_CURRENT, &current)) {
             current_valid = true;
+            if (first_update_current) {
+                first_update_current = false;
+                prev_current = current;  // Первое значение = предыдущее
+            }
             Serial.printf("Ток: %.2f А\n", current);
         } else {
             current_valid = false;
@@ -243,13 +308,24 @@ void loop() {
         
         if (ha_client_fetch_sensor(HA_ENTITY_ENERGY, &energy)) {
             energy_valid = true;
+            if (first_update_energy) {
+                first_update_energy = false;
+                prev_energy = energy;  // Первое значение = предыдущее
+            }
             Serial.printf("Энергия: %.1f кВт·ч\n", energy);
         } else {
             energy_valid = false;
             Serial.printf("Ошибка получения энергии: %s\n", ha_client_get_last_error());
         }
         
+        // Обновляем дисплей (сравнивает текущие значения с предыдущими)
         update_display();
+        
+        // Сохраняем текущие значения как предыдущие для следующего обновления
+        if (power_valid) prev_power = power;
+        if (voltage_valid) prev_voltage = voltage;
+        if (current_valid) prev_current = current;
+        if (energy_valid) prev_energy = energy;
     }
     
     delay(1000);
