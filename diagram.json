@@ -11,24 +11,31 @@
       "attrs": {}
     },
     {
-      "type": "wokwi-ssd1306",
+      "type": "board-ssd1306",
       "id": "oled1",
-      "top": 0,
-      "left": 300,
+      "top": 200,
+      "left": 400,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 100,
+      "left": 100,
       "attrs": {
-        "width": 128,
-        "height": 64
+        "color": "blue"
       }
     }
   ],
   "connections": [
-    [ "esp32:TX0", "$serialMonitor:RX", "", [] ],
-    [ "esp32:RX0", "$serialMonitor:TX", "", [] ],
-    [ "esp32:D21", "oled1:SDA", "green", [ "h0" ] ],
-    [ "esp32:D22", "oled1:SCL", "blue", [ "h0" ] ],
-    [ "esp32:3V3", "oled1:VCC", "red", [ "h0" ] ],
-    [ "esp32:GND.1", "oled1:GND", "black", [ "h0" ] ]
+    ["esp32:TX0", "$serialMonitor:RX", "", []],
+    ["esp32:RX0", "$serialMonitor:TX", "", []],
+    ["esp32:D21", "oled1:SDA", "green", ["h0"]],
+    ["esp32:D22", "oled1:SCL", "blue", ["h0"]],
+    ["esp32:3V3", "oled1:VCC", "red", ["h0"]],
+    ["esp32:GND.1", "oled1:GND", "black", ["h0"]],
+    ["esp32:D2", "led1:A", "yellow", ["h0"]],
+    ["esp32:GND.1", "led1:C", "black", ["h0"]]
   ],
   "dependencies": {}
 }
-

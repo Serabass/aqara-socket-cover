@@ -6,9 +6,9 @@ elf = ".pio/build/esp32dev/firmware.elf"
 
 # WiFi настройки для симуляции в Wokwi
 [wifi]
-ssid = "Wokwi-Guest"
+ssid = "Wokwi-GUEST"
 password = ""
-channel = 1
+channel = 6
 
 # Serial Monitor настройки
 [serial]

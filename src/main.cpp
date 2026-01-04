@@ -2,8 +2,30 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include <Arduino.h>
+#include "wifi_manager.h"
+#include "ha_client.h"
 
 // ===== НАСТРОЙКИ =====
+// WiFi
+// Для Wokwi используй "Wokwi-GUEST" без пароля
+// Для реального ESP32 измени на свои данные
+#define WIFI_SSID "Wokwi-GUEST"
+#define WIFI_PASSWORD ""
+// Для реального устройства раскомментируй:
+// #define WIFI_SSID "MikroTik-9DA0AC"
+// #define WIFI_PASSWORD "MYZLMGFPT3"
+
+// Home Assistant
+#define HA_SERVER "192.168.88.13"  // IP адрес Home Assistant
+#define HA_PORT 30123                // Порт Home Assistant
+#define HA_TOKEN "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkZWU1MDMxNTUwOGM0OGVkOGYzOTVjNTJkOTM1YzllMCIsImlhdCI6MTc2NzI3MjUxMywiZXhwIjoyMDgyNjMyNTEzfQ.hSO2cB2AGafJQgpSCoRIS9B2tlsBHoO-Iv83sjfplDs"  // Long-Lived Access Token
+
+// Entity ID сенсоров
+#define HA_ENTITY_POWER "sensor.conditioner_socket_power"
+#define HA_ENTITY_VOLTAGE "sensor.conditioner_socket_voltage"
+#define HA_ENTITY_CURRENT "sensor.conditioner_socket_current"
+#define HA_ENTITY_ENERGY "sensor.conditioner_socket_energy"
+
 // OLED SSD1306 через I2C
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -11,7 +33,113 @@
 #define OLED_SCL 22
 #define OLED_ADDR 0x3C
 
+// LED индикатор WiFi (можно отключить через макрос)
+#define ENABLE_WIFI_LED 1  // Установи в 0 для отключения LED
+#define WIFI_LED_PIN 2     // GPIO пин для LED (можно изменить)
+
+// Интервал обновления данных (в миллисекундах)
+#define UPDATE_INTERVAL_MS 60000  // 1 минута
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+// Данные сенсоров
+float power = 0.0f;
+float voltage = 0.0f;
+float current = 0.0f;
+float energy = 0.0f;
+
+bool power_valid = false;
+bool voltage_valid = false;
+bool current_valid = false;
+bool energy_valid = false;
+
+unsigned long lastUpdate = 0;
+
+// Инициализация LED индикатора WiFi
+void init_wifi_led() {
+#if ENABLE_WIFI_LED
+    pinMode(WIFI_LED_PIN, OUTPUT);
+    digitalWrite(WIFI_LED_PIN, LOW);
+    Serial.printf("WiFi LED инициализирован на GPIO%d\n", WIFI_LED_PIN);
+#endif
+}
+
+// Обновление состояния LED в зависимости от подключения WiFi
+void update_wifi_led(bool connected) {
+#if ENABLE_WIFI_LED
+    digitalWrite(WIFI_LED_PIN, connected ? HIGH : LOW);
+#endif
+}
+
+// Функция форматирования числа с заменой ведущих нулей на пробелы
+// Поддерживает числа до 9999.99
+void format_number(char* buffer, size_t size, float value) {
+    // Форматируем с ведущими нулями (7 символов: 4 цифры + точка + 2 цифры)
+    snprintf(buffer, size, "%07.2f", value);
+    
+    // Заменяем ведущие нули на пробелы (но оставляем один ноль перед точкой)
+    for (size_t i = 0; i < strlen(buffer) - 1; i++) {
+        if (buffer[i] == '0' && buffer[i+1] != '.') {
+            buffer[i] = ' ';
+        } else {
+            break; // Останавливаемся на первой не-нулевой цифре или точке
+        }
+    }
+}
+
+void update_display() {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    
+    char buffer[16];
+    
+    // Первая строка - мощность (слева, правая область свободна)
+    display.setCursor(0, 0);
+    display.print("P:");
+    if (power_valid) {
+        format_number(buffer, sizeof(buffer), power);
+        display.print(buffer);
+        display.print("W");
+    } else {
+        display.print("    .00");
+    }
+    
+    // Вторая строка - напряжение (слева, правая область свободна)
+    display.setCursor(0, 16);
+    display.print("V:");
+    if (voltage_valid) {
+        format_number(buffer, sizeof(buffer), voltage);
+        display.print(buffer);
+        display.print("V");
+    } else {
+        display.print("    .00");
+    }
+    
+    // Третья строка - энергия (слева, правая область свободна)
+    display.setCursor(0, 32);
+    display.print("E:");
+    if (energy_valid) {
+        format_number(buffer, sizeof(buffer), energy);
+        display.print(buffer);
+        display.print("kWh");
+    } else {
+        display.print("    .00");
+    }
+    
+    // Четвертая строка - ток (слева, правая область свободна)
+    display.setCursor(0, 48);
+    display.print("I:");
+    if (current_valid) {
+        format_number(buffer, sizeof(buffer), current);
+        display.print(buffer);
+        display.print("A");
+    } else {
+        display.print("    .00");
+    }
+    
+    display.display();
+}
 
 void setup() {
     // Инициализация Serial для отладки
@@ -34,28 +162,94 @@ void setup() {
     
     Serial.println("OLED инициализирован успешно!");
     
-    // Очистка дисплея
+    // Начальное отображение
     display.clearDisplay();
-    
-    // Настройка текста
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    
-    // Вывод текста
     display.setCursor(0, 0);
-    display.println("Hello World!");
-    display.setCursor(0, 16);
-    display.println("Arduino OLED");
-    display.setCursor(0, 32);
-    display.println("SSD1306");
-    
-    // Отображение на экране
+    display.println("Initializing...");
     display.display();
     
-    Serial.println("Текст выведен на OLED!");
+    // Инициализация WiFi
+    Serial.println("Инициализация WiFi...");
+    wifi_manager_init(WIFI_SSID, WIFI_PASSWORD);
+    
+    // Инициализация LED индикатора WiFi
+    init_wifi_led();
+    
+    // Инициализация Home Assistant клиента
+    Serial.println("Инициализация Home Assistant клиента...");
+    ha_client_init(HA_SERVER, HA_PORT, HA_TOKEN);
+    
+    // Первое обновление дисплея
+    update_display();
+    
+    // Обновляем LED статус
+    update_wifi_led(wifi_manager_is_connected());
+    
+    Serial.println("Приложение запущено");
 }
 
 void loop() {
-    // Основной цикл - можно добавить логику обновления данных
+    // Проверяем подключение WiFi
+    bool wifi_connected = wifi_manager_is_connected();
+    update_wifi_led(wifi_connected);
+    
+    if (!wifi_connected) {
+        Serial.println("WiFi не подключен, ждем...");
+        update_display();
+        delay(5000);
+        return;
+    }
+    
+    // Обновляем данные каждую минуту
+    unsigned long now = millis();
+    if (now - lastUpdate >= UPDATE_INTERVAL_MS || lastUpdate == 0) {
+        lastUpdate = now;
+        
+        Serial.println("Запрашиваю данные из Home Assistant...");
+        
+        // Запрашиваем все сенсоры
+        if (ha_client_fetch_sensor(HA_ENTITY_POWER, &power)) {
+            power_valid = true;
+            Serial.printf("Мощность: %.1f Вт\n", power);
+        } else {
+            power_valid = false;
+            Serial.printf("Ошибка получения мощности: %s\n", ha_client_get_last_error());
+        }
+        
+        delay(500); // Небольшая задержка между запросами
+        
+        if (ha_client_fetch_sensor(HA_ENTITY_VOLTAGE, &voltage)) {
+            voltage_valid = true;
+            Serial.printf("Напряжение: %.1f В\n", voltage);
+        } else {
+            voltage_valid = false;
+            Serial.printf("Ошибка получения напряжения: %s\n", ha_client_get_last_error());
+        }
+        
+        delay(500);
+        
+        if (ha_client_fetch_sensor(HA_ENTITY_CURRENT, &current)) {
+            current_valid = true;
+            Serial.printf("Ток: %.2f А\n", current);
+        } else {
+            current_valid = false;
+            Serial.printf("Ошибка получения тока: %s\n", ha_client_get_last_error());
+        }
+        
+        delay(500);
+        
+        if (ha_client_fetch_sensor(HA_ENTITY_ENERGY, &energy)) {
+            energy_valid = true;
+            Serial.printf("Энергия: %.1f кВт·ч\n", energy);
+        } else {
+            energy_valid = false;
+            Serial.printf("Ошибка получения энергии: %s\n", ha_client_get_last_error());
+        }
+        
+        update_display();
+    }
+    
     delay(1000);
 }
