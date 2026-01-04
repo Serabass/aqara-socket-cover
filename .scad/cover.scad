@@ -24,7 +24,6 @@ wall_thickness = 2; // Толщина стенок
 bottom_thickness = 2; // Толщина дна
 top_thickness = 2; // Толщина крышки
 clearance = 1.5; // Зазор между компонентами и стенками
-screw_hole_d = 2.5; // Диаметр отверстий под винты
 
 // ===== РАЗМЕРЫ AQARA РОЗЕТКИ =====
 aqara_diameter = 60; // Диаметр накладной розетки
@@ -41,6 +40,11 @@ inner_h = max(esp32_h, oled_h) + clearance + 2; // Высота с запасо�
 outer_w = inner_w + wall_thickness * 2;
 outer_l = inner_l + wall_thickness * 2;
 outer_h = inner_h + bottom_thickness;
+
+// ===== ПАРАМЕТРЫ ВИНТОВ =====
+screw_hole_d = 2.5; // Диаметр отверстий под винты
+screw_boss_h = outer_h; // Высота бобышек под винты
+screw_boss_d = 6; // Диаметр бобышек под винты
 
 // ===== ВСПОМОГАТЕЛЬНЫЕ МОДУЛИ =====
 
@@ -91,6 +95,24 @@ module main_case() {
       for (j = [1:19]) {
         translate([outer_w / 2 + i * (inner_w / 20), wall_thickness + j * (inner_l / 20), 1])
           cylinder(h=3, d=1, center=true);
+      }
+    }
+  }
+
+  // Бобышки с отверстиями для винтов (4 штуки по углам на верхней части)
+  screw_positions = [
+    [5, 5],
+    [outer_w - 5, 5],
+    [5, outer_l - 5],
+    [outer_w - 5, outer_l - 5]
+  ];
+
+  for (pos = screw_positions) {
+    translate([pos[0], pos[1], 0]) {
+      difference() {
+        cylinder(h=screw_boss_h, d=screw_boss_d);
+        translate([0, 0, -0.5])
+          cylinder(h=screw_boss_h + 1, d=screw_hole_d);
       }
     }
   }
