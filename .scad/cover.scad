@@ -135,16 +135,16 @@ module wedge(w, l, h, direction = "x") {
 }
 
 module screw_hole() {
-  union() {
-    difference() {
+  difference() {
+    union() {
       cylinder(h=screw_boss_h, d=screw_boss_d);
 
+      translate([-3.3, -3.3, 0])
+        rotate([270, -90, 0])
+          wedge(screw_boss_h, 12, 12, "x");
+    }
       translate([0, 0, -0.5])
         cylinder(h=screw_boss_h + 1, d=screw_hole_d);
-    }
-    translate([-3.3, -3.3, 0])
-      rotate([270, -90, 0])
-        #wedge(screw_boss_h, 4.8, 4.8, "x");
   }
 }
 
