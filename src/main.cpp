@@ -34,8 +34,9 @@
 #define OLED_ADDR 0x3C
 
 // LED индикатор WiFi (можно отключить через макрос)
+// Используем встроенный LED на ESP32 DevKit V1 (GPIO2)
 #define ENABLE_WIFI_LED 1  // Установи в 0 для отключения LED
-#define WIFI_LED_PIN 2     // GPIO пин для LED (можно изменить)
+#define WIFI_LED_PIN 2     // Встроенный LED на ESP32 DevKit V1
 
 // Интервал обновления данных (в миллисекундах)
 #define UPDATE_INTERVAL_MS 60000  // 1 минута

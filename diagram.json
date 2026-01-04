@@ -16,15 +16,6 @@
       "top": 200,
       "left": 400,
       "attrs": {}
-    },
-    {
-      "type": "wokwi-led",
-      "id": "led1",
-      "top": 100,
-      "left": 100,
-      "attrs": {
-        "color": "blue"
-      }
     }
   ],
   "connections": [
@@ -33,9 +24,7 @@
     ["esp32:D21", "oled1:SDA", "green", ["h0"]],
     ["esp32:D22", "oled1:SCL", "blue", ["h0"]],
     ["esp32:3V3", "oled1:VCC", "red", ["h0"]],
-    ["esp32:GND.1", "oled1:GND", "black", ["h0"]],
-    ["esp32:D2", "led1:A", "yellow", ["h0"]],
-    ["esp32:GND.1", "led1:C", "black", ["h0"]]
+    ["esp32:GND.1", "oled1:GND", "black", ["h0"]]
   ],
   "dependencies": {}
 }
