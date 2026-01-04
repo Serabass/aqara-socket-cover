@@ -1,7 +1,7 @@
 [wokwi]
 version = 1
-firmware = ".pio/build/nanoesp32-c6/firmware.bin"
-elf = ".pio/build/nanoesp32-c6/firmware.elf"
+firmware = ".pio/build/esp32dev/firmware.bin"
+elf = ".pio/build/esp32dev/firmware.elf"
 
 # WiFi настройки для симуляции в Wokwi
 [wifi]
@@ -9,8 +9,7 @@ ssid = "Wokwi-Guest"
 password = ""
 channel = 1
 
-# LCD1602 конфигурация
-# LCD1602 через I2C подключен к GPIO21 (SDA) и GPIO22 (SCL)
-# I2C адрес: 0x27 (можно изменить на 0x3F если не работает)
-# Схема подключения определена в diagram.json
+# Serial Monitor настройки
+[serial]
+baud = 115200
 

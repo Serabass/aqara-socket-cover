@@ -28,8 +28,7 @@ static const char *TAG = "MAIN";
 #define LCD_D6_PIN GPIO_NUM_23
 #define LCD_D7_PIN GPIO_NUM_5
 
-// LED для тестирования
-#define LED_PIN GPIO_NUM_2
+// LED убран для тестирования LCD
 
 // Интервал обновления данных (в миллисекундах)
 // #define UPDATE_INTERVAL_MS 60000  // 1 минута
@@ -82,13 +81,12 @@ static const char *TAG = "MAIN";
 // }
 
 extern "C" void app_main(void) {
-    ESP_LOGI(TAG, "Запуск приложения...");
+    // Небольшая задержка для инициализации UART
+    vTaskDelay(pdMS_TO_TICKS(100));
     
-    // Инициализация LED
-    ESP_LOGI(TAG, "Инициализация LED на GPIO%d...", LED_PIN);
-    gpio_reset_pin(LED_PIN);
-    gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(LED_PIN, 0);
+    ESP_LOGI(TAG, "========================================");
+    ESP_LOGI(TAG, "Запуск приложения ESP32");
+    ESP_LOGI(TAG, "========================================");
     
     // Инициализация WiFi
     // ESP_LOGI(TAG, "Инициализация WiFi...");
@@ -108,12 +106,33 @@ extern "C" void app_main(void) {
         vTaskDelay(pdMS_TO_TICKS(100));
         
         ESP_LOGI(TAG, "Вывод текста на LCD...");
-        // Выводим Hello World
+        
+        // Даём больше времени после clear
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        // Тест: отправляем по одному символу с большими задержками
+        ESP_LOGI(TAG, "ТЕСТ: Отправка символов по одному...");
+        
+        // Первая строка
         display_lcd1602_set_cursor(0, 0);
-        display_lcd1602_print("Hello World");
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(200));
+        display_lcd1602_print("H");
+        vTaskDelay(pdMS_TO_TICKS(500));
+        display_lcd1602_print("e");
+        vTaskDelay(pdMS_TO_TICKS(500));
+        display_lcd1602_print("l");
+        vTaskDelay(pdMS_TO_TICKS(500));
+        display_lcd1602_print("l");
+        vTaskDelay(pdMS_TO_TICKS(500));
+        display_lcd1602_print("o");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        // Вторая строка
         display_lcd1602_set_cursor(1, 0);
-        display_lcd1602_print("LCD1602 Test");
+        vTaskDelay(pdMS_TO_TICKS(200));
+        display_lcd1602_print("Test");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
         ESP_LOGI(TAG, "Текст отправлен на LCD");
     }
     
@@ -126,12 +145,8 @@ extern "C" void app_main(void) {
     
     ESP_LOGI(TAG, "Приложение запущено");
     
-    // Основной цикл - мигаем LED каждую секунду
-    bool led_state = false;
+    // Основной цикл
     while (1) {
-        led_state = !led_state;
-        gpio_set_level(LED_PIN, led_state);
-        ESP_LOGI(TAG, "LED: %s", led_state ? "ON" : "OFF");
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
