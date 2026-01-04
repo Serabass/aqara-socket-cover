@@ -150,36 +150,28 @@ static void shift_out_byte(uint8_t data, gpio_num_t dio_pin, gpio_num_t sck_pin)
 }
 
 // Обновление дисплея (6 цифр)
-static void update_display(uint8_t digits[6])
+void update_display(uint8_t digits[6])
 {
   // Защелка должна быть LOW во время отправки данных
   gpio_set_level(DISPLAY_RCK, 0);
   delay_us(10);
 
-#ifdef REVERSE_DIGIT_ORDER
-  // Отправляем цифры в обратном порядке (справа налево)
+  // В 74HC595 данные сдвигаются так, что первый отправленный байт попадает в последний регистр
+  // Поэтому отправляем данные в обратном порядке: digits[5], digits[4], ..., digits[0]
+  // Это означает, что digits[0] попадет на первую позицию, digits[5] - на последнюю
   for (int i = 5; i >= 0; i--)
   {
-    uint8_t mapped_pos = digitMapping[i];
-    uint8_t pattern = digits[mapped_pos];
+    uint8_t pattern = digits[i];
 #ifdef INVERT_PATTERNS
     pattern = ~pattern; // Инвертируем для общего анода
 #endif
     shift_out_byte(pattern, DISPLAY_DIO, DISPLAY_SCK);
+    delay_us(10); // Задержка между байтами
   }
-#else
-  // Отправляем цифры слева направо (стандарт)
-  for (int i = 0; i < 6; i++)
-  {
-    uint8_t mapped_pos = digitMapping[i];
-    uint8_t pattern = digits[mapped_pos];
-#ifdef INVERT_PATTERNS
-    pattern = ~pattern; // Инвертируем для общего анода
-#endif
-    shift_out_byte(pattern, DISPLAY_DIO, DISPLAY_SCK);
-  }
-#endif
 
+  // Добавляем небольшую задержку перед защелкой
+  delay_us(10);
+  
   // Включаем защелку ПОСЛЕ отправки всех данных
   // Это переносит данные из сдвигового регистра в выходной регистр
   gpio_set_level(DISPLAY_RCK, 1);

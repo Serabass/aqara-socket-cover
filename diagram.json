@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "author": "aqara-socket-cover",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp32",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-lcd1602",
+      "id": "lcd1",
+      "top": -20,
+      "left": 300,
+      "attrs": {
+        "pins": "full"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 50,
+      "left": 100,
+      "attrs": {
+        "color": "red"
+      }
+    }
+  ],
+  "connections": [
+    [ "esp32:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp32:RX0", "$serialMonitor:TX", "", [] ],
+    [ "esp32:GPIO21", "lcd1:RS", "green", [ "h0" ] ],
+    [ "esp32:GPIO22", "lcd1:EN", "blue", [ "h0" ] ],
+    [ "esp32:GPIO18", "lcd1:D4", "yellow", [ "h0" ] ],
+    [ "esp32:GPIO19", "lcd1:D5", "orange", [ "h0" ] ],
+    [ "esp32:GPIO23", "lcd1:D6", "purple", [ "h0" ] ],
+    [ "esp32:GPIO5", "lcd1:D7", "brown", [ "h0" ] ],
+    [ "esp32:GND.1", "lcd1:RW", "black", [ "h0" ] ],
+    [ "esp32:3V3", "lcd1:VDD", "red", [ "h0" ] ],
+    [ "esp32:GND.1", "lcd1:VSS", "black", [ "h0" ] ],
+    [ "esp32:3V3", "lcd1:A", "red", [ "h0" ] ],
+    [ "esp32:GND.1", "lcd1:K", "black", [ "h0" ] ],
+    [ "esp32:D2", "led1:A", "green", [ "h0" ] ],
+    [ "esp32:GND.1", "led1:C", "black", [ "h0" ] ]
+  ],
+  "dependencies": {}
+}
+

@@ -21,6 +21,9 @@ void display_7seg_show_right_direct(uint8_t digits[3]);
 // Отобразить напрямую массив из 6 байтов (для тестирования всех позиций)
 void display_7seg_show_direct(uint8_t digits[6]);
 
+// Обновление дисплея (6 цифр) - внутренняя функция для отладки
+void update_display(uint8_t digits[6]);
+
 // Отобразить число на обоих дисплеях (0-999999)
 // Левая часть (старшие 3 цифры) и правая часть (младшие 3 цифры)
 void display_7seg_show_number(uint32_t number);
