@@ -30,6 +30,8 @@ aqara_diameter = 60; // Диаметр накладной розетки
 aqara_height = 20; // Высота части, которая накладывается
 aqara_inner_d = 75; // Внутренний диаметр (для крепления)
 
+aqara_button_diameter = 15; // Диаметр кнопки
+
 // ===== ВНУТРЕННИЕ РАЗМЕРЫ КОРПУСА =====
 // ESP32 размещаем вдоль, OLED рядом
 inner_w = esp32_l + clearance * 2; // Ширина = длина ESP32
@@ -327,21 +329,28 @@ module aqara_rim() {
   difference() {
     difference() {
       difference() {
-        // Основное кольцо обода
-        cylinder(h=rim_height, d=rim_outer_d);
+        difference() {
+          // Основное кольцо обода
+          cylinder(h=rim_height, d=rim_outer_d);
 
-        // Внутреннее отверстие (надевается на розетку)
-        translate([0, 0, -0.5])
-          cylinder(h=rim_height + 1, d=rim_inner_d);
+          // Внутреннее отверстие (надевается на розетку)
+          translate([0, 0, -0.5])
+            cylinder(h=rim_height + 1, d=rim_inner_d);
+        }
+
+        translate([-35, 0, outer_h / 2])
+          cube([10, 2, outer_h + 2], center=true);
       }
 
-      translate([-35, 0, outer_h / 2])
-        cube([10, 2, outer_h + 2], center=true);
+      translate([-31.6, 0, outer_h / 2])
+        rotate([0, 0, 90])
+          cut_round_cube();
     }
 
-    translate([-31.6, 0, outer_h / 2])
-      rotate([0, 0, 90])
-        cut_round_cube();
+    // Отверстие для кнопки Aqara
+    translate([-30, 0, rim_height / 2])
+      rotate([0, 90, 0])
+        cylinder(h=aqara_height, d=aqara_button_diameter, center=true);
   }
 
   // // Платформа для крепления основного корпуса
