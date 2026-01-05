@@ -184,6 +184,16 @@ module main_case() {
           cylinder(h=3, d=1.5, center=true);
       }
     }
+
+    // Вентиляционные отверстия (опционально)
+    translate([12, 0, 2])for (i = [1:5]) {
+      rotate([90, 0, 90])for (j = [1:10]) {
+        translate([0, i * (inner_w / 20), j * (inner_l / 20)])
+          rotate([0, 90, 0])
+            // cube([10, inner_l / 30, 1.5], center=true);
+            cylinder(h=5.5, d=1.5, center=true);
+      }
+    }
   }
 
   // Бобышки с отверстиями для винтов (4 штуки по углам на верхней части)
