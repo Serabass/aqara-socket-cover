@@ -143,8 +143,8 @@ module screw_hole() {
         rotate([270, -90, 0])
           wedge(screw_boss_h, 12, 12, "x");
     }
-      translate([0, 0, -0.5])
-        cylinder(h=screw_boss_h + 1, d=screw_hole_d);
+    translate([0, 0, -0.5])
+      cylinder(h=screw_boss_h + 1, d=screw_hole_d);
   }
 }
 
@@ -273,6 +273,19 @@ module aqara_adapter() {
     }
 }
 
+module cut_round_cube() {
+  width = 6;
+  difference() {
+    cube([width, rim_thickness + 1, outer_h + 2], center=true);
+    translate([width / 2, 0, 0])
+      rotate([0, 0, 0])
+        cylinder(h=outer_h + 2, d=rim_thickness, center=true);
+    translate([-width / 2, 0, 0])
+      rotate([0, 0, 0])
+        cylinder(h=outer_h + 2, d=rim_thickness, center=true);
+  }
+}
+
 // ===== ОБОД ДЛЯ КРЕПЛЕНИЯ НА AQARA РОЗЕТКУ =====
 rim_thickness = 3; // Толщина обода
 rim_height = outer_h; // Высота обода
@@ -281,6 +294,7 @@ rim_outer_d = rim_inner_d + rim_thickness * 2; // Внешний диаметр
 mounting_platform_h = 4; // Высота платформы для крепления корпуса
 
 module aqara_rim() {
+  difference() {
   difference() {
     difference() {
       // Основное кольцо обода
@@ -293,6 +307,11 @@ module aqara_rim() {
 
     translate([-35, 0, outer_h / 2])
       cube([10, 2, outer_h + 2], center=true);
+  }
+
+  translate([-31.6, 0, outer_h / 2])
+    rotate([0, 0, 90])
+      cut_round_cube();
   }
 
   // // Платформа для крепления основного корпуса
@@ -335,12 +354,14 @@ module aqara_logo() {
 // ===== СБОРКА =====
 
 // Основной корпус
-translate([0, 0, 0])
-  main_case();
+ translate([0, 0, 0])
+   main_case();
 
+// Кольцо для крепления на Aqara розетку
 translate([-31.3, outer_l / 2, 0])
   aqara_rim();
 
-translate([59, outer_l / 2, outer_h / 2])
-  rotate([90, 0, 90])
-    aqara_logo();
+// Логотип Aqara
+ translate([59, outer_l / 2, outer_h / 2])
+   rotate([90, 0, 90])
+     aqara_logo();
