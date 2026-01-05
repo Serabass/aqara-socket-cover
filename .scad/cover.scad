@@ -13,7 +13,7 @@ esp32_h = 13; // Высота ESP32 (с компонентами)
 esp32_usb_w = 12; // Ширина USB разъема
 esp32_usb_h = 5; // Высота USB разъема
 
-oled_w = 27; // Ширина OLED
+oled_w = 37; // Ширина OLED
 oled_l = 27; // Длина OLED
 oled_h = 1.6; // Высота OLED
 oled_display_w = 22.7; // Ширина видимой области (с зазором)
@@ -137,7 +137,7 @@ module wedge(w, l, h, direction = "x") {
 module screw_hole() {
   difference() {
     union() {
-      cylinder(h=screw_boss_h, d=screw_boss_d);
+      // cylinder(h=screw_boss_h, d=screw_boss_d);
 
       translate([-3.3, -3.3, 0])
         rotate([270, -90, 0])
@@ -312,17 +312,17 @@ module aqara_rim() {
   //            cube([rim_thickness, outer_w/2 + 5, rim_height], center = true);
   //}
   {
-    translate([rim_outer_d / 2, 10, 0])
+    translate([rim_outer_d / 2, 19, 0])
       rotate([90, 0, 0])
         rotate([0, 0, 90])
           translate([0, 0, -rim_height / 2])
-            wedge(rim_height, 9, 18, "x");
+            wedge(rim_height, 16, 22, "x");
 
-    translate([rim_outer_d / 2, -10, 0])
+    translate([rim_outer_d / 2, -19, 0])
       rotate([90, 0, 0])
         rotate([0, 0, 90])
           translate([0, 0, rim_height / 2])
-            wedge(rim_height, 9, -18, "x");
+            wedge(rim_height, 16, -22, "x");
   }
 }
 
