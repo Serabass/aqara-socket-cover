@@ -194,6 +194,26 @@ module main_case() {
             cylinder(h=5.5, d=1.5, center=true);
       }
     }
+
+    // Вентиляционные отверстия (опционально)
+    translate([60, 58, 1])for (i = [1:5]) {
+      rotate([90, 0, 0])for (j = [1:2]) {
+        translate([0, i * (inner_w / 20), j * (inner_l / 20)])
+          rotate([0, 90, 0])
+            // cube([10, inner_l / 30, 1.5], center=true);
+            cylinder(h=5.5, d=1.5, center=true);
+      }
+    }
+
+    // Вентиляционные отверстия (опционально)
+    translate([60, 23, 1])for (i = [1:5]) {
+      rotate([90, 0, 0])for (j = [1:2]) {
+        translate([0, i * (inner_w / 20), j * (inner_l / 20)])
+          rotate([0, 90, 0])
+            // cube([10, inner_l / 30, 1.5], center=true);
+            cylinder(h=5.5, d=1.5, center=true);
+      }
+    }
   }
 
   // Бобышки с отверстиями для винтов (4 штуки по углам на верхней части)
