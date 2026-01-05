@@ -3,6 +3,8 @@
 ![Схема подключения](wiring.png)
 ![Предпросмотр](preview.png)
 
+https://kaspi.kz/shop/p/modul-displeja-arduino-i2c-116737351/?ref=shared_link
+
 ## Компоненты модели
 
 Модель состоит из 3 частей:
