@@ -161,12 +161,13 @@ module main_case() {
     // Отверстие для USB разъема ESP32
     translate(
       [
-        outer_w / 2 - 10,
-        outer_l / 2,
-        0.5,
+        outer_w / 2,
+        outer_l,
+        outer_h / 2,
       ]
     )
-      cube([esp32_usb_h, esp32_usb_w, bottom_thickness * 2], center=true);
+      rotate([90, 90, 0])
+        cube([esp32_usb_h, esp32_usb_w, bottom_thickness * 3], center=true);
 
     //// Отверстия для проводов I2C (OLED)
     //translate([
@@ -177,7 +178,7 @@ module main_case() {
     //    cube([5, 2, bottom_thickness + 1]);
 
     // Вентиляционные отверстия (опционально)
-    translate([-5, 0, 0])for (i = [1:9]) {
+    translate([-14, 0, 0])for (i = [1:9]) {
       for (j = [1:19]) {
         translate([outer_w / 2 + i * (inner_w / 20), wall_thickness + j * (inner_l / 20), 1])
           cylinder(h=3, d=1.5, center=true);
