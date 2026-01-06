@@ -9,11 +9,13 @@
 // WiFi
 // Для Wokwi используй "Wokwi-GUEST" без пароля
 // Для реального ESP32 измени на свои данные
-#define WIFI_SSID "Wokwi-GUEST"
-#define WIFI_PASSWORD ""
-// Для реального устройства раскомментируй:
-// #define WIFI_SSID "MikroTik-9DA0AC"
-// #define WIFI_PASSWORD "MYZLMGFPT3"
+#if defined(WOKWI)
+    #define WIFI_SSID "Wokwi-GUEST"
+    #define WIFI_PASSWORD ""
+#else
+    #define WIFI_SSID "MikroTik-9DA0AC"
+    #define WIFI_PASSWORD "MYZLMGFPT3"
+#endif
 
 // Home Assistant
 #define HA_SERVER "192.168.88.13"  // IP адрес Home Assistant
