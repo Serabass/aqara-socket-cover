@@ -116,46 +116,53 @@ module esp32_case() {
         start_w = vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
         start_h = vent_margin + (available_h - (holes_h - 1) * vent_spacing) / 2;
 
-        for (i = [0:holes_w - 1]) {
-          for (j = [0:holes_h - 1]) {
+        for (i = [0:holes_w - 1])
+          for (j = [0:holes_h - 1])
             translate([start_w + i * vent_spacing, -35, start_h + j * vent_spacing])
               cube([2, 10, 10], center=true);
-          }
-        }
       }
     }
 
     // Бобышки с отверстиями для винтов (4 штуки по углам)
-    for (pos = screw_positions) {
-      translate([pos[0], pos[1], 0]) {
+    for (pos = screw_positions)
+      translate([pos[0], pos[1], 0])
         color("blue")
           union() {
             cylinder(h=screw_boss_h, d=screw_boss_d);
             cylinder(h=screw_boss_h + 8, d=screw_hole_d);
           }
-      }
-    }
   }
 }
 
 // ===== ПАРАМЕТРЫ КРЫШКИ =====
 oled_display_margin = 2; // Отступ вокруг видимой области OLED
 
+// ===== ПАРАМЕТРЫ КРЕПЛЕНИЙ ЭКРАНА =====
+screen_mount_d = 3; // Диаметр креплений для экрана
+screen_mount_h = 2; // Высота креплений для экрана
+screen_mount_offset = 2; // Отступ креплений от края OLED
+
+// ===== ПАРАМЕТРЫ ОТВЕРСТИЯ ДЛЯ ПРОВОДОВ =====
+dupont_hole_w = 10; // Ширина отверстия для 4 проводов dupont
+dupont_hole_h = 2; // Высота отверстия для проводов
+dupont_hole_offset = 1; // Отступ отверстия от края крышки
+
 // ===== КРЫШКА ДЛЯ ESP32 КОРПУСА С ЭКРАНОМ =====
-module esp32_case_lid() {
-  // Смещаем всю крышку так, чтобы центр был в (0, 0, 0)
+module esp32_case_lid()
+// Смещаем всю крышку так, чтобы центр был в (0, 0, 0)
   translate([-esp32_case_outer_w / 2, -esp32_case_outer_l / 2, -top_thickness / 2]) {
+    // Позиция и размеры OLED (используются в difference и для креплений)
+    oled_x = esp32_case_outer_w / 2 - oled_display_w / 2 - oled_display_margin;
+    oled_y = esp32_case_outer_l / 2 - oled_display_l / 2 - oled_display_margin;
+    oled_w = oled_display_w + oled_display_margin * 2;
+    oled_l = oled_display_l + oled_display_margin * 2;
+
     difference() {
       cube([esp32_case_outer_w, esp32_case_outer_l, top_thickness]);
 
-      // Отверстие для OLED дисплея (центрированное)
-      oled_x = esp32_case_outer_w / 2 - oled_display_w / 2 - oled_display_margin;
-      oled_y = esp32_case_outer_l / 2 - oled_display_l / 2 - oled_display_margin;
-      oled_w = oled_display_w + oled_display_margin * 2;
-      oled_l = oled_display_l + oled_display_margin * 2;
-
-      translate([oled_x, oled_y, -0.5])
-        cube([oled_w, oled_l, top_thickness + 1]);
+      // Отверстие для 4 проводов dupont (10мм)
+      translate([dupont_hole_offset, esp32_case_outer_l / 2, -0.5])
+        #cube([dupont_hole_w, dupont_hole_h, 10], center=true);
 
       // Вентиляционные отверстия в крышке (сетка, исключая область OLED)
       translate([0, 0, -0.5]) {
@@ -167,7 +174,7 @@ module esp32_case_lid() {
         start_w = vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
         start_l = vent_margin + (available_l - (holes_l - 1) * vent_spacing) / 2;
 
-        for (i = [0:holes_w - 1]) {
+        for (i = [0:holes_w - 1])
           for (j = [0:holes_l - 1]) {
             x = start_w + i * vent_spacing;
             y = start_l + j * vent_spacing;
@@ -177,12 +184,10 @@ module esp32_case_lid() {
               !(
                 x >= oled_x && x <= oled_x + oled_w && y >= oled_y && y <= oled_y + oled_l
               )
-            ) {
+            )
               translate([x, y, 0])
                 cylinder(h=top_thickness + 1, d=vent_hole_d);
-            }
           }
-        }
       }
 
       // Отверстия для винтов (совпадают с бобышками в корпусе)
@@ -193,10 +198,20 @@ module esp32_case_lid() {
         [esp32_case_outer_w - 1.5, esp32_case_outer_l - 1.5],
       ];
 
-      for (pos = screw_positions) {
+      for (pos = screw_positions)
         translate([pos[0], pos[1], 0])
           cylinder(h=top_thickness + 7, d=screw_hole_d, center=true);
-      }
     }
+
+    // Крепления для экрана (4 бобышки по углам OLED)
+    screen_mount_positions = [
+      [oled_x + screen_mount_offset, oled_y + screen_mount_offset],
+      [oled_x + oled_w - screen_mount_offset, oled_y + screen_mount_offset],
+      [oled_x + screen_mount_offset, oled_y + oled_l - screen_mount_offset],
+      [oled_x + oled_w - screen_mount_offset, oled_y + oled_l - screen_mount_offset],
+    ];
+
+    for (pos = screen_mount_positions)
+      translate([pos[0], pos[1], top_thickness / 2])
+        cylinder(h=screen_mount_h + 2, d=screen_mount_d, center=true);
   }
-}
