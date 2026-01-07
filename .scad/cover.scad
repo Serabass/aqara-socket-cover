@@ -228,7 +228,7 @@ difference() {
       esp32_case();
 
   //// Логотип Aqara
-  translate([20, outer_l / 2, outer_h / 2])
+  translate([20, outer_l / 2 - 3, outer_h / 2])
     rotate([90, 0, 180])
       color("white")
         aqara_logo();
