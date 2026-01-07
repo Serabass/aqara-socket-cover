@@ -5,30 +5,10 @@
 
 #include "AqaraSocketScreen.h"
 #include "ha_client.h"
+#include "secrets.h" // Секреты и конфигурация (не попадает в git)
 #include "wifi_manager.h"
 
-// ===== НАСТРОЙКИ =====
-// WiFi
-// Для Wokwi используй "Wokwi-GUEST" без пароля
-// Для реального ESP32 измени на свои данные
-#if defined(WOKWI)
-#define WIFI_SSID "Wokwi-GUEST"
-#define WIFI_PASSWORD ""
-#else
-#define WIFI_SSID "MikroTik-9DA0AC"
-#define WIFI_PASSWORD "MYZLMGFPT3"
-#endif
-
-// Home Assistant
-#define HA_SERVER "192.168.88.13" // IP адрес Home Assistant
-#define HA_PORT 30123             // Порт Home Assistant
-#define HA_TOKEN                                                               \
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."                                      \
-  "eyJpc3MiOiJkZWU1MDMxNTUwOGM0OGVkOGYzOTVjNTJkOTM1YzllMCIsImlhdCI6MTc2NzI3Mj" \
-  "UxMywiZXhwIjoyMDgyNjMyNTEzfQ.hSO2cB2AGafJQgpSCoRIS9B2tlsBHoO-Iv83sjfplDs" // Long-Lived Access Token
-
-// Entity ID сенсоров
-#define HA_ENTITY_NAME "conditioner_socket"
+// Entity ID сенсоров (используют HA_ENTITY_NAME из secrets.h)
 #define HA_ENTITY_POWER "sensor." HA_ENTITY_NAME "_power"
 #define HA_ENTITY_VOLTAGE "sensor." HA_ENTITY_NAME "_voltage"
 #define HA_ENTITY_CURRENT "sensor." HA_ENTITY_NAME "_current"

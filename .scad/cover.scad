@@ -131,7 +131,7 @@ module main_case() {
         translate([0, i * (inner_w / 20), j * (inner_l / 20)])
           rotate([0, 90, 0])
             // cube([10, inner_l / 30, 1.5], center=true);
-            cylinder(h=5.5, d=1.5, center=true);
+            cylinder(h=5.9, d=1.5, center=true);
       }
     }
 
