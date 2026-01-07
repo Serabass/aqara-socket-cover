@@ -17,7 +17,7 @@ oled_w = 25; // Ширина OLED
 oled_l = 25; // Длина OLED
 oled_h = 1.6; // Высота OLED
 oled_display_w = 25; // Ширина видимой области (с зазором)
-oled_display_l = 16; // Длина видимой области
+oled_display_l = 25; // Длина видимой области
 
 // ===== ПАРАМЕТРЫ КОРПУСА =====
 wall_thickness = 2; // Толщина стенок
@@ -233,8 +233,7 @@ translate([20.45, 0, 18.5 / 2])
   rotate([0, 0, 90])
     esp32_case();
 
-//  rotate([0, 0, 90])
-//    translate([0, -34, outer_h - 2])
-//      color("green")
-//        esp32_case_lid();
-//
+#rotate([0, 0, 90])
+  translate([0, -20.45, 19.5])
+    color("red")
+      esp32_case_lid();

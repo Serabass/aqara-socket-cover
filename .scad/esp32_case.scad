@@ -18,7 +18,7 @@ esp32_usb_h = 5; // Высота USB разъема
 oled_w = 25; // Ширина OLED
 oled_l = 25; // Длина OLED
 oled_display_w = 25; // Ширина видимой области экрана
-oled_display_l = 16; // Высота видимой области экрана
+oled_display_l = 25; // Высота видимой области экрана
 
 // ===== ПАРАМЕТРЫ КОРПУСА =====
 wall_thickness = 3; // Толщина стенок
@@ -151,7 +151,7 @@ module esp32_case() {
         color("blue")
           union() {
             cylinder(h=screw_boss_h, d=screw_boss_d);
-            cylinder(h=screw_boss_h + 5, d=screw_hole_d);
+            cylinder(h=screw_boss_h + 8, d=screw_hole_d);
           }
       }
     }
@@ -163,57 +163,60 @@ oled_display_margin = 2; // Отступ вокруг видимой облас�
 
 // ===== КРЫШКА ДЛЯ ESP32 КОРПУСА С ЭКРАНОМ =====
 module esp32_case_lid() {
-  difference() {
-    cube([esp32_case_outer_w, esp32_case_outer_l, top_thickness]);
+  // Смещаем всю крышку так, чтобы центр был в (0, 0, 0)
+  translate([-esp32_case_outer_w / 2, -esp32_case_outer_l / 2, -top_thickness / 2]) {
+    difference() {
+      cube([esp32_case_outer_w, esp32_case_outer_l, top_thickness]);
 
-    // Отверстие для OLED дисплея (центрированное)
-    oled_x = esp32_case_outer_w / 2 - oled_display_w / 2 - oled_display_margin;
-    oled_y = esp32_case_outer_l / 2 - oled_display_l / 2 - oled_display_margin;
-    oled_w = oled_display_w + oled_display_margin * 2;
-    oled_l = oled_display_l + oled_display_margin * 2;
+      // Отверстие для OLED дисплея (центрированное)
+      oled_x = esp32_case_outer_w / 2 - oled_display_w / 2 - oled_display_margin;
+      oled_y = esp32_case_outer_l / 2 - oled_display_l / 2 - oled_display_margin;
+      oled_w = oled_display_w + oled_display_margin * 2;
+      oled_l = oled_display_l + oled_display_margin * 2;
 
-    translate([oled_x, oled_y, -0.5])
-      cube([oled_w, oled_l, top_thickness + 1]);
+      translate([oled_x, oled_y, -0.5])
+        cube([oled_w, oled_l, top_thickness + 1]);
 
-    // Вентиляционные отверстия в крышке (сетка, исключая область OLED)
-    translate([0, 0, -0.5]) {
-      available_w = esp32_case_outer_w - vent_margin * 2;
-      available_l = esp32_case_outer_l - vent_margin * 2;
-      holes_w = floor(available_w / vent_spacing);
-      holes_l = floor(available_l / vent_spacing);
+      // Вентиляционные отверстия в крышке (сетка, исключая область OLED)
+      translate([0, 0, -0.5]) {
+        available_w = esp32_case_outer_w - vent_margin * 2;
+        available_l = esp32_case_outer_l - vent_margin * 2;
+        holes_w = floor(available_w / vent_spacing);
+        holes_l = floor(available_l / vent_spacing);
 
-      start_w = vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
-      start_l = vent_margin + (available_l - (holes_l - 1) * vent_spacing) / 2;
+        start_w = vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
+        start_l = vent_margin + (available_l - (holes_l - 1) * vent_spacing) / 2;
 
-      for (i = [0:holes_w - 1]) {
-        for (j = [0:holes_l - 1]) {
-          x = start_w + i * vent_spacing;
-          y = start_l + j * vent_spacing;
+        for (i = [0:holes_w - 1]) {
+          for (j = [0:holes_l - 1]) {
+            x = start_w + i * vent_spacing;
+            y = start_l + j * vent_spacing;
 
-          // Пропускаем отверстия в области OLED
-          if (
-            !(
-              x >= oled_x && x <= oled_x + oled_w && y >= oled_y && y <= oled_y + oled_l
-            )
-          ) {
-            translate([x, y, 0])
-              cylinder(h=top_thickness + 1, d=vent_hole_d);
+            // Пропускаем отверстия в области OLED
+            if (
+              !(
+                x >= oled_x && x <= oled_x + oled_w && y >= oled_y && y <= oled_y + oled_l
+              )
+            ) {
+              translate([x, y, 0])
+                cylinder(h=top_thickness + 1, d=vent_hole_d);
+            }
           }
         }
       }
-    }
 
-    // Отверстия для винтов (совпадают с бобышками в корпусе)
-    screw_positions = [
-      [screw_offset, screw_offset],
-      [esp32_case_outer_w - screw_offset, screw_offset],
-      [screw_offset, esp32_case_outer_l - screw_offset],
-      [esp32_case_outer_w - screw_offset, esp32_case_outer_l - screw_offset],
-    ];
+      // Отверстия для винтов (совпадают с бобышками в корпусе)
+      screw_positions = [
+        [1.5, 1.5],
+        [esp32_case_outer_w - 1.5, 1.5],
+        [1.5, esp32_case_outer_l - 1.5],
+        [esp32_case_outer_w - 1.5, esp32_case_outer_l - 1.5],
+      ];
 
-    for (pos = screw_positions) {
-      translate([pos[0], pos[1], -0.5])
-        cylinder(h=top_thickness + 1, d=screw_hole_d);
+      for (pos = screw_positions) {
+        translate([pos[0], pos[1], -0.5])
+          cylinder(h=top_thickness + 1, d=screw_hole_d);
+      }
     }
   }
 }
