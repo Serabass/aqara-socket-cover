@@ -137,7 +137,7 @@ module esp32_case() {
 
         for (i = [0:holes_w - 1]) {
           for (j = [0:holes_h - 1]) {
-            translate([start_w + i * vent_spacing, 0, start_h + j * vent_spacing])
+            translate([start_w + i * vent_spacing, -35, start_h + j * vent_spacing])
               rotate([90, 0, 0])
                 cylinder(h=wall_thickness * 3, d=vent_hole_d, center=true);
           }
@@ -150,8 +150,7 @@ module esp32_case() {
       translate([pos[0], pos[1], 0]) {
         union() {
           cylinder(h=screw_boss_h, d=screw_boss_d);
-          translate([0, 0, -0.5])
-            cylinder(h=screw_boss_h + 5, d=screw_hole_d);
+          cylinder(h=screw_boss_h + 5, d=screw_hole_d);
         }
       }
     }

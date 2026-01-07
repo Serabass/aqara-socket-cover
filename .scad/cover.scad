@@ -229,7 +229,7 @@ translate([-31.3, 0, 0])
 //
 translate([38.95, 0, 0])
   rotate([0, 0, 90])
-      esp32_case();
+    esp32_case();
 //
 //  rotate([0, 0, 90])
 //    translate([0, -34, outer_h - 2])
