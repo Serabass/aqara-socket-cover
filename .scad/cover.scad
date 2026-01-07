@@ -50,7 +50,7 @@ screw_boss_d = 6; // Диаметр бобышек под винты
 
 use <screen_mount.scad>;
 use <wedge.scad>;
-use <esp32_case.scad>;
+include <esp32_case.scad>;
 include <aqara-rim.scad>;
 
 // ===== ВСПОМОГАТЕЛЬНЫЕ МОДУЛИ =====
