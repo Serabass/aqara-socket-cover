@@ -1,3 +1,4 @@
 {
-    "openscad.launchPath": "C:\\Program Files\\OpenSCAD (Nightly)\\openscad.exe"
+    "openscad.launchPath": "C:\\Program Files\\OpenSCAD (Nightly)\\openscad.exe",
+    "editor.formatOnSave": true
 }

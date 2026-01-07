@@ -1,21 +1,21 @@
-#include "ha_client.h"
-#include "wifi_manager.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "ha_client.h"
+#include "wifi_manager.h"
 
 // ===== НАСТРОЙКИ =====
 // WiFi
 // Для Wokwi используй "Wokwi-GUEST" без пароля
 // Для реального ESP32 измени на свои данные
 #if defined(WOKWI)
-  #define WIFI_SSID "Wokwi-GUEST"
-  #define WIFI_PASSWORD ""
+#define WIFI_SSID "Wokwi-GUEST"
+#define WIFI_PASSWORD ""
 #else
-    #define WIFI_SSID "MikroTik-9DA0AC"
-    #define WIFI_PASSWORD "MYZLMGFPT3"
+#define WIFI_SSID "MikroTik-9DA0AC"
+#define WIFI_PASSWORD "MYZLMGFPT3"
 #endif
 
 // Home Assistant
@@ -63,11 +63,13 @@
 
 // LED индикатор WiFi (можно отключить через макрос)
 // Используем встроенный LED на ESP32 DevKit V1 (GPIO2)
-#define ENABLE_WIFI_LED 1 // Установи в 0 для отключения LED
-#define WIFI_LED_PIN 2    // Встроенный LED на ESP32 DevKit V1
+#define ENABLE_WIFI_LED // Установи в 0 для отключения LED
+#ifdef ENABLE_WIFI_LED
+#define WIFI_LED_PIN 2 // Встроенный LED на ESP32 DevKit V1
+#endif
 
 // Интервал обновления данных (в миллисекундах)
-#define UPDATE_INTERVAL_MS 60000 // 1 минута
+#define UPDATE_INTERVAL_MS 10000 // 10 секунд
 
 // Объекты дисплеев (условная компиляция)
 #if DISPLAY_COUNT >= 1
@@ -132,20 +134,20 @@ void show_init_animation(Adafruit_SSD1306 &disp) {
 }
 
 // Инициализация LED индикатора WiFi
+#ifdef ENABLE_WIFI_LED
 void init_wifi_led() {
-#if ENABLE_WIFI_LED
   pinMode(WIFI_LED_PIN, OUTPUT);
   digitalWrite(WIFI_LED_PIN, LOW);
   Serial.printf("WiFi LED инициализирован на GPIO%d\n", WIFI_LED_PIN);
-#endif
 }
+#endif
 
 // Обновление состояния LED в зависимости от подключения WiFi
+#ifdef ENABLE_WIFI_LED
 void update_wifi_led(bool connected) {
-#if ENABLE_WIFI_LED
   digitalWrite(WIFI_LED_PIN, connected ? HIGH : LOW);
-#endif
 }
+#endif
 
 // Функция форматирования числа с заменой ведущих нулей на пробелы
 // Поддерживает числа до 9999.99
@@ -165,32 +167,19 @@ void format_number(char *buffer, size_t size, float value) {
 
 // Кастомные символы стрелок (8x8 пикселей)
 // Стрелка вверх
-static const unsigned char arrow_up_bmp[] = {
-  0B00011000,
-  0B00111100,
-  0B01111110,
-  0B11111111,
-  0B00011000,
-  0B00011000,
-  0B00011000,
-  0B00000000
-};
+static const unsigned char arrow_up_bmp[] = {0B00011000, 0B00111100, 0B01111110,
+                                             0B11111111, 0B00011000, 0B00011000,
+                                             0B00011000, 0B00000000};
 
 // Стрелка вниз
 static const unsigned char arrow_down_bmp[] = {
-  0B00011000,
-  0B00011000,
-  0B00011000,
-  0B11111111,
-  0B01111110,
-  0B00111100,
-  0B00011000,
-  0B00000000
-};
+    0B00011000, 0B00011000, 0B00011000, 0B11111111,
+    0B01111110, 0B00111100, 0B00011000, 0B00000000};
 
 // Функция для отображения стрелки на дисплее
-void draw_arrow(Adafruit_SSD1306& disp, int x, int y, bool is_up) {
-  disp.drawBitmap(x, y, is_up ? arrow_up_bmp : arrow_down_bmp, 8, 8, SSD1306_WHITE);
+void draw_arrow(Adafruit_SSD1306 &disp, int x, int y, bool is_up) {
+  disp.drawBitmap(x, y, is_up ? arrow_up_bmp : arrow_down_bmp, 8, 8,
+                  SSD1306_WHITE);
 }
 
 // Функция для получения типа изменения значения
@@ -200,7 +189,8 @@ int get_change_direction(float current, float previous, bool is_first) {
     return 0; // Первое обновление - без стрелки
   }
 
-  const float threshold = 0.01f; // Порог для учета изменений (избегаем дрожания)
+  const float threshold =
+      0.01f; // Порог для учета изменений (избегаем дрожания)
 
   if (current > previous + threshold) {
     return 1; // Стрелка вверх
@@ -238,12 +228,13 @@ void show_sensor_value(Adafruit_SSD1306 &disp, const char *label, float value,
     x_pos = 0; // Не выходим за границы
   disp.setCursor(x_pos, y_pos);
   disp.print(full_text);
-  
+
   // Показываем стрелку изменения справа от текста
   int change_dir = get_change_direction(value, prev_value, is_first);
   if (change_dir != 0) {
-    int arrow_x = x_pos + text_width + 2; // Справа от текста с небольшим отступом
-    if (arrow_x + 8 <= 128) { // Проверяем, что стрелка поместится
+    int arrow_x =
+        x_pos + text_width + 2; // Справа от текста с небольшим отступом
+    if (arrow_x + 8 <= 128) {   // Проверяем, что стрелка поместится
       draw_arrow(disp, arrow_x, y_pos, change_dir == 1);
     }
   }
@@ -305,11 +296,12 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), power, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-      display1.print(" W");
-      int change_dir = get_change_direction(power, prev_power, first_update_power);
-      if (change_dir != 0) {
-        draw_arrow(display1, 100, 0, change_dir == 1);
-      }
+    display1.print(" W");
+    int change_dir =
+        get_change_direction(power, prev_power, first_update_power);
+    if (change_dir != 0) {
+      draw_arrow(display1, 100, 0, change_dir == 1);
+    }
   } else {
     int spaces = dot_char_position - 4; // 4 символа для " .00"
     if (spaces < 0)
@@ -325,11 +317,12 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), voltage, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-      display1.print(" V");
-      int change_dir = get_change_direction(voltage, prev_voltage, first_update_voltage);
-      if (change_dir != 0) {
-        draw_arrow(display1, 100, line_height, change_dir == 1);
-      }
+    display1.print(" V");
+    int change_dir =
+        get_change_direction(voltage, prev_voltage, first_update_voltage);
+    if (change_dir != 0) {
+      draw_arrow(display1, 100, line_height, change_dir == 1);
+    }
   } else {
     int spaces = dot_char_position - 4;
     if (spaces < 0)
@@ -345,11 +338,12 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), energy, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-      display1.print(" kWh");
-      int change_dir = get_change_direction(energy, prev_energy, first_update_energy);
-      if (change_dir != 0) {
-        draw_arrow(display1, 100, line_height * 2, change_dir == 1);
-      }
+    display1.print(" kWh");
+    int change_dir =
+        get_change_direction(energy, prev_energy, first_update_energy);
+    if (change_dir != 0) {
+      draw_arrow(display1, 100, line_height * 2, change_dir == 1);
+    }
   } else {
     int spaces = dot_char_position - 4;
     if (spaces < 0)
@@ -365,11 +359,12 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), current, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-      display1.print(" A");
-      int change_dir = get_change_direction(current, prev_current, first_update_current);
-      if (change_dir != 0) {
-        draw_arrow(display1, 100, line_height * 3, change_dir == 1);
-      }
+    display1.print(" A");
+    int change_dir =
+        get_change_direction(current, prev_current, first_update_current);
+    if (change_dir != 0) {
+      draw_arrow(display1, 100, line_height * 3, change_dir == 1);
+    }
   } else {
     int spaces = dot_char_position - 4;
     if (spaces < 0)
@@ -521,7 +516,9 @@ void setup() {
   wifi_manager_init(WIFI_SSID, WIFI_PASSWORD);
 
   // Инициализация LED индикатора WiFi
+#ifdef ENABLE_WIFI_LED
   init_wifi_led();
+#endif
 
   // Инициализация Home Assistant клиента
   Serial.println("Инициализация Home Assistant клиента...");
@@ -531,7 +528,9 @@ void setup() {
   update_displays();
 
   // Обновляем LED статус
+#ifdef ENABLE_WIFI_LED
   update_wifi_led(wifi_manager_is_connected());
+#endif
 
   Serial.println("Приложение запущено");
 }
