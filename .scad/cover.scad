@@ -51,6 +51,7 @@ screw_boss_d = 6; // Диаметр бобышек под винты
 use <screen_mount.scad>;
 use <wedge.scad>;
 use <esp32_case.scad>;
+include <aqara-rim.scad>;
 
 // ===== ВСПОМОГАТЕЛЬНЫЕ МОДУЛИ =====
 
@@ -191,47 +192,6 @@ module screw_fill_rotate(i) {
   }
 }
 
-// ===== КРЫШКА С ОТВЕРСТИЕМ ДЛЯ OLED =====
-module lid() {
-  difference() {
-    rounded_box(outer_w, outer_l, top_thickness, 3);
-
-    // Отверстие для OLED дисплея (с запасом)
-    translate(
-      [
-        outer_w / 2 - oled_display_l / 2 - 2,
-        outer_l - wall_thickness - oled_w - clearance - 2,
-        -0.5,
-      ]
-    )
-      rounded_box(oled_display_l + 4, oled_display_w + 4, top_thickness + 1, 1);
-  }
-}
-
-// ===== АДАПТЕР ДЛЯ AQARA РОЗЕТКИ =====
-module aqara_adapter() {
-  difference() {
-    // Внешнее кольцо
-    cylinder(h=aqara_height, d=aqara_diameter);
-
-    // Внутреннее отверстие
-    translate([0, 0, -0.5])
-      cylinder(h=aqara_height + 1, d=aqara_inner_d);
-
-    // Крепление к основному корпусу (вырез под корпус)
-    translate([0, 0, aqara_height - 5])
-      cube([outer_w + 1, outer_l + 1, 6], center=true);
-  }
-
-  // Платформа для крепления корпуса
-  translate([0, 0, aqara_height])
-    difference() {
-      rounded_box(outer_w + 4, outer_l + 4, 3, 2);
-      translate([0, 0, -0.5])
-        cube([outer_w, outer_l, 4], center=true);
-    }
-}
-
 module cut_round_cube() {
   width = 6;
   difference() {
@@ -243,61 +203,6 @@ module cut_round_cube() {
       rotate([0, 0, 0])
         cylinder(h=outer_h + 2, d=rim_thickness, center=true);
   }
-}
-
-// ===== ОБОД ДЛЯ КРЕПЛЕНИЯ НА AQARA РОЗЕТКУ =====
-rim_thickness = 3; // Толщина обода
-rim_height = outer_h; // Высота обода
-rim_inner_d = aqara_diameter + 0.5; // Внутренний диаметр (с зазором для надевания)
-rim_outer_d = rim_inner_d + rim_thickness * 2; // Внешний диаметр
-mounting_platform_h = 4; // Высота платформы для крепления корпуса
-
-module aqara_rim() {
-  difference() {
-    difference() {
-      difference() {
-        difference() {
-          // Основное кольцо обода
-          cylinder(h=rim_height, d=rim_outer_d);
-
-          // Внутреннее отверстие (надевается на розетку)
-          translate([0, 0, -0.5])
-            cylinder(h=rim_height + 1, d=rim_inner_d);
-        }
-
-        translate([-35, 0, outer_h / 2])
-          cube([10, 2, outer_h + 2], center=true);
-      }
-
-      // закругление на концах
-      translate([-31.6, 0, outer_h / 2])
-        rotate([0, 0, 90])
-          cut_round_cube();
-    }
-
-    // Отверстие для кнопки Aqara
-    translate([-30, 0, rim_height / 2])
-      rotate([0, 90, 0])
-        cylinder(h=aqara_height, d=aqara_button_diameter, center=true);
-  }
-
-  // // Платформа для крепления основного корпуса
-  // translate([0, 0, rim_height])
-  //     difference() {
-  //         // Основание платформы
-  //         rounded_box(outer_w + 6, outer_l + 6, mounting_platform_h, 2);
-  //         
-  //         // Отверстие под корпус (с зазором)
-  //         translate([0, 0, -0.5])
-  //             cube([outer_w + 1, outer_l + 1, mounting_platform_h + 1], center = true);
-  //     }
-  // 
-  // Усиливающие ребра (4 штуки по углам)
-  //for (angle = [0, 90, 180, 270]) {
-  //    rotate([0, 0, angle])
-  //        translate([rim_outer_d/2 - rim_thickness/2, 0, 0])
-  //            cube([rim_thickness, outer_w/2 + 5, rim_height], center = true);
-  //}
 }
 
 module aqara_logo() {
@@ -313,18 +218,21 @@ module aqara_logo() {
 //
 //// Кольцо для крепления на Aqara розетку
 translate([-31.3, outer_l / 2, 0])
-  aqara_rim();
-
-//// Логотип Aqara
-//translate([59, outer_l / 2, outer_h / 2])
-//  rotate([90, 0, 90])
-//    aqara_logo();
+  color("white")
+    aqara_rim();
 //
-// Крепление для экрана (отдельно для печати)
-// Раскомментируй для визуализации:
-// translate([0, 0, 0])
-//   screen_mount();
-
-translate([34, 0, 0])
+////// Логотип Aqara
+//translate([33, outer_l / 2, outer_h / 2])
+//  rotate([90, 0, 90])
+//    color("white")
+//      aqara_logo();
+//
+translate([42, -4, 0])
   rotate([0, 0, 90])
-    esp32_case();
+      esp32_case();
+//
+//  rotate([0, 0, 90])
+//    translate([0, -34, outer_h - 2])
+//      color("green")
+//        esp32_case_lid();
+//

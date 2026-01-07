@@ -7,12 +7,17 @@ $fn = 64; // Качество окружностей
 // ===== РАЗМЕРЫ КОМПОНЕНТОВ =====
 esp32_w = 25.4; // Ширина ESP32
 esp32_l = 53.3; // Длина ESP32
-esp32_h = 15; // Высота ESP32 (с компонентами)
+esp32_h = 13; // Высота ESP32 (с компонентами)
 esp32_usb_w = 12; // Ширина USB разъема
 esp32_usb_h = 5; // Высота USB разъема
 
+oled_w = 25; // Ширина OLED
+oled_l = 25; // Длина OLED
+oled_display_w = 25; // Ширина видимой области экрана
+oled_display_l = 16; // Высота видимой области экрана
+
 // ===== ПАРАМЕТРЫ КОРПУСА =====
-wall_thickness = 2; // Толщина стенок
+wall_thickness = 6; // Толщина стенок
 bottom_thickness = 2; // Толщина дна
 top_thickness = 2; // Толщина крышки
 clearance = 1.5; // Зазор между компонентами и стенками
@@ -51,6 +56,15 @@ module esp32_case() {
       rotate([0, 90, 0])
         cube([esp32_usb_h, esp32_usb_w, wall_thickness * 3], center=true);
     
+    // Отверстия для проводов (I2C для OLED) - справа
+    translate([
+      outer_w,
+      outer_l / 2 - 5,
+      outer_h / 2,
+    ])
+      rotate([0, 90, 0])
+        cube([3, 10, wall_thickness * 3], center=true);
+    
     // Вентиляционные отверстия (сверху)
     for (i = [1:5]) {
       for (j = [1:3]) {
@@ -83,10 +97,18 @@ module esp32_case() {
   }
 }
 
-// ===== КРЫШКА ДЛЯ ESP32 КОРПУСА =====
+// ===== КРЫШКА ДЛЯ ESP32 КОРПУСА С ЭКРАНОМ =====
 module esp32_case_lid() {
   difference() {
     cube([outer_w, outer_l, top_thickness]);
+    
+    // Отверстие для OLED дисплея 25x16 (с запасом)
+    translate([
+      outer_w / 2 - oled_display_w / 2 - 2,
+      outer_l / 2 - oled_display_l / 2 - 2,
+      -0.5,
+    ])
+      cube([oled_display_w + 4, oled_display_l + 4, top_thickness + 1]);
     
     // Отверстия для винтов
     screw_positions = [
@@ -102,9 +124,3 @@ module esp32_case_lid() {
     }
   }
 }
-
-// ===== СБОРКА =====
-// Раскомментируй для визуализации:
-// esp32_case();
-// translate([0, 0, outer_h + 1])
-//   esp32_case_lid();
