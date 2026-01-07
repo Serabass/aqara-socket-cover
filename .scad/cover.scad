@@ -206,7 +206,7 @@ module cut_round_cube() {
 }
 
 module aqara_logo() {
-  linear_extrude(height=2)
+  linear_extrude(height=6)
     import("aqara_logo.svg", center=true);
 }
 
@@ -217,22 +217,24 @@ module aqara_logo() {
 //  main_case();
 //
 //// Кольцо для крепления на Aqara розетку
-
+//
 translate([-31.3, 0, 0])
   color("white")
     aqara_rim();
 
-////// Логотип Aqara
-//translate([33, outer_l / 2, outer_h / 2])
-//  rotate([90, 0, 90])
-//    color("white")
-//      aqara_logo();
+difference() {
+  translate([20.45, 0, 18.5 / 2])
+    rotate([0, 0, 90])
+      esp32_case();
 
-translate([20.45, 0, 18.5 / 2])
-  rotate([0, 0, 90])
-    esp32_case();
+  //// Логотип Aqara
+  translate([20, outer_l / 2, outer_h / 2])
+    rotate([90, 0, 180])
+      color("white")
+        aqara_logo();
+}
 
-rotate([0, 0, 90])
-  translate([0, -20.45, 19.5])
-    color("green")
-      esp32_case_lid();
+//rotate([0, 0, 90])
+//  translate([0, -20.45, 19.5])
+//    color("green")
+//      esp32_case_lid();
