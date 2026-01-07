@@ -5,7 +5,7 @@
 $fn = 64; // Качество окружностей
 
 // ===== КОНСТАНТЫ КОРПУСА =====
-OUTER_WIDTH = 66.5; // Ширина коробки (константа)
+OUTER_WIDTH = 62.5; // Ширина коробки (константа)
 OUTER_HEIGHT = 18.5; // Высота коробки (константа)
 
 // ===== РАЗМЕРЫ КОМПОНЕНТОВ =====
@@ -31,7 +31,7 @@ esp32_case_outer_w = OUTER_WIDTH; // Ширина коробки (констан
 esp32_case_inner_w = esp32_case_outer_w - wall_thickness * 2; // Внутренняя ширина вычисляется из внешней
 
 // ===== ВНУТРЕННИЕ РАЗМЕРЫ КОРПУСА =====
-esp32_case_inner_l = esp32_w + clearance * 2; // Длина = ширина ESP32 + зазоры
+esp32_case_inner_l = esp32_w + clearance * 2 - 2; // Длина = ширина ESP32 + зазоры
 esp32_case_inner_h = esp32_h + clearance; // Высота с запасом
 
 // ===== ВНЕШНИЕ РАЗМЕРЫ (продолжение) =====
@@ -39,13 +39,13 @@ esp32_case_outer_l = esp32_case_inner_l + wall_thickness * 2; // Внешняя 
 esp32_case_outer_h = OUTER_HEIGHT; // Внешняя высота
 
 // ===== ПАРАМЕТРЫ ВИНТОВ =====
-screw_hole_d = 2.5; // Диаметр отверстий под винты
+screw_hole_d = 3; // Диаметр отверстий под винты
 screw_boss_h = 6; // Высота бобышек под винты
 screw_boss_d = 6; // Диаметр бобышек под винты
 screw_offset = wall_thickness + 3; // Отступ винтов от края (стенка + небольшой зазор)
 
 // ===== ПАРАМЕТРЫ ВЕНТИЛЯЦИИ =====
-vent_hole_d = 3; // Диаметр вентиляционных отверстий
+vent_hole_d = 4; // Диаметр вентиляционных отверстий
 vent_spacing = 6; // Расстояние между центрами отверстий
 vent_margin = wall_thickness + 3; // Отступ вентиляции от края
 
@@ -70,9 +70,9 @@ module esp32_case() {
         cube([esp32_case_inner_w, esp32_case_inner_l, esp32_case_inner_h + 4]);
 
       // Отверстие для USB разъема ESP32 (сбоку, слева)
-      translate([0, esp32_case_outer_l / 2, esp32_case_outer_h / 2])
+      translate([0, esp32_case_outer_l / 2, esp32_case_outer_h / 2 + 1.8])
         rotate([0, 90, 0])
-          cube([esp32_usb_h, esp32_usb_w, wall_thickness * 3], center=true);
+          cube([esp32_usb_h + 10, esp32_usb_w, wall_thickness * 3], center=true);
 
       // Вентиляционные отверстия на задней стороне (дно коробки, z = 0)
       translate([0, 0, 0]) {
