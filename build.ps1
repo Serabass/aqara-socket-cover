@@ -14,7 +14,7 @@ if (-not (Test-Path $pioPath)) {
 }
 
 Write-Host "Uploading firmware to ESP32..." -ForegroundColor Cyan
-& $pioPath run --target upload --environment esp32dev
+& $pioPath run --environment esp32dev
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "`nUpload failed! Trying manual reset..." -ForegroundColor Yellow
