@@ -269,6 +269,7 @@ module aqara_rim() {
           cube([10, 2, outer_h + 2], center=true);
       }
 
+      // закругление на концах
       translate([-31.6, 0, outer_h / 2])
         rotate([0, 0, 90])
           cut_round_cube();
