@@ -80,24 +80,24 @@ module aqara_logo() {
 //  main_case();
 //
 //// Кольцо для крепления на Aqara розетку
+// 
+// translate([-31.3, 0, 0])
+//   color("white")
+//     aqara_rim();
+// 
+// difference() {
+//   translate([19.45, 0, 18.5 / 2])
+//     rotate([0, 0, 90])
+//       esp32_case();
+// 
+//   //// Логотип Aqara
+//   translate([20, outer_l / 2 - 3, outer_h / 2])
+//     rotate([90, 0, 180])
+//       color("white")
+//         aqara_logo();
+// }
 
-translate([-31.3, 0, 0])
-  color("white")
-    aqara_rim();
-
-difference() {
-  translate([19.45, 0, 18.5 / 2])
-    rotate([0, 0, 90])
-      esp32_case();
-
-  //// Логотип Aqara
-  translate([20, outer_l / 2 - 3, outer_h / 2])
-    rotate([90, 0, 180])
-      color("white")
-        aqara_logo();
-}
-
-//rotate([0, 0, 90])
-//  translate([0, -20.45, 19.5])
-//    color("green")
-//      esp32_case_lid();
+rotate([0, 0, 90])
+  translate([0, -19.45, 19.5])
+    color("green")
+      esp32_case_lid();

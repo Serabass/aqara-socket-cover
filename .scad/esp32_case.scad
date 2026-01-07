@@ -201,7 +201,7 @@ module esp32_case_lid() {
     cube([esp32_case_outer_w, esp32_case_outer_l, top_thickness], center=true);
 
     // Отверстие для 4 проводов dupont (10мм)
-    translate([0, oled_y + oled_l / 2 - screen_mount_offset, 0])
+    translate([0, oled_l / 2 - screen_mount_offset, 0])
       cube([dupont_hole_w + 2, dupont_hole_h + 1, 10], center=true);
 
     // Вентиляционные отверстия в крышке (сетка, исключая область OLED)
@@ -230,10 +230,10 @@ module esp32_case_lid() {
 
     // Отверстия для винтов (совпадают с бобышками в корпусе)
     screw_positions = [
-      [-half_w + 1.5, -half_l + 1.5],
-      [half_w - 1.5, -half_l + 1.5],
-      [-half_w + 1.5, half_l - 1.5],
-      [half_w - 1.5, half_l - 1.5],
+      // [-half_w + 1.5, -half_l + 1.5],
+      // [half_w - 1.5, -half_l + 1.5],
+      // [-half_w + 1.5, half_l - 1.5],
+      // [half_w - 1.5, half_l - 1.5],
     ];
 
     for (pos = screw_positions)
@@ -251,5 +251,5 @@ module esp32_case_lid() {
 
   for (pos = screen_mount_positions)
     translate([pos[0], pos[1], 0])
-      cylinder(h=screen_mount_h + 4, d=screen_mount_d, center=true);
+      cylinder(h=screen_mount_h + 1, d=screen_mount_d, center=false);
 }
