@@ -147,10 +147,10 @@ module esp32_case() {
 
   for (pos = screw_positions) {
     translate([pos[0], pos[1], 0]) {
-      difference() {
+      union() {
         cylinder(h=screw_boss_h, d=screw_boss_d);
         translate([0, 0, -0.5])
-          cylinder(h=screw_boss_h + 1, d=screw_hole_d);
+          cylinder(h=screw_boss_h + 5, d=screw_hole_d);
       }
     }
   }
