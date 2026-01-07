@@ -80,10 +80,10 @@ module aqara_logo() {
 //  main_case();
 //
 //// Кольцо для крепления на Aqara розетку
-//
-//translate([-31.3, 0, 0])
-//  color("white")
-//    aqara_rim();
+
+translate([-31.3, 0, 0])
+  color("white")
+    aqara_rim();
 
 difference() {
   translate([19.45, 0, 18.5 / 2])

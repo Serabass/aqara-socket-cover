@@ -6,7 +6,8 @@
 // Для Wokwi используй "Wokwi-GUEST" без пароля
 // Для реального ESP32 измени на свои данные
 // Раскомментируй #define WOKWI для работы в Wokwi симуляторе
-#if defined(WOKWI)
+// #define WOKWI
+#ifdef WOKWI
 #define WIFI_SSID "Wokwi-GUEST"
 #define WIFI_PASSWORD ""
 #else
