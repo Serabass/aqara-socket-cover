@@ -279,6 +279,6 @@ src/
 
 ## TODO
  * [x] HA REST API
- * [x] WebSocket API
- * [x] MQTT
+ * [ ] WebSocket API
+ * [ ] MQTT
 Можно будет сделать 3 варианта общения с розеткой - все через #define / #ifdef
