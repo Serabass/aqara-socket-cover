@@ -1,6 +1,6 @@
 // ===== СЕКРЕТЫ И КОНФИГУРАЦИЯ =====
-// ВНИМАНИЕ: Этот файл - шаблон. Скопируй его в secrets.h и заполни своими значениями
-// Файл secrets.h уже добавлен в .gitignore и не попадет в git
+// ВНИМАНИЕ: Этот файл - шаблон. Скопируй его в secrets.h и заполни своими
+// значениями Файл secrets.h уже добавлен в .gitignore и не попадет в git
 
 // WiFi настройки
 // Для Wokwi используй "Wokwi-GUEST" без пароля
@@ -17,7 +17,7 @@
 // Home Assistant настройки
 #define HA_SERVER "192.168.1.100" // IP адрес Home Assistant
 #define HA_PORT 8123              // Порт Home Assistant (обычно 8123)
-#define HA_TOKEN "YOUR_LONG_LIVED_ACCESS_TOKEN" // Long-Lived Access Token из Home Assistant
+#define HA_TOKEN                                                               \
+  "YOUR_LONG_LIVED_ACCESS_TOKEN" // Long-Lived Access Token из Home Assistant
 
 // Entity ID сенсоров
-#define HA_ENTITY_NAME "conditioner_socket"

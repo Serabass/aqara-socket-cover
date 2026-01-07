@@ -8,6 +8,7 @@
 #include "secrets.h" // Секреты и конфигурация (не попадает в git)
 #include "wifi_manager.h"
 
+#define HA_ENTITY_NAME "conditioner_socket"
 // Entity ID сенсоров (используют HA_ENTITY_NAME из secrets.h)
 #define HA_ENTITY_POWER "sensor." HA_ENTITY_NAME "_power"
 #define HA_ENTITY_VOLTAGE "sensor." HA_ENTITY_NAME "_voltage"
