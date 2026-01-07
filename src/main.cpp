@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "AqaraSocketScreen.h"
 #include "ha_client.h"
 #include "wifi_manager.h"
 
@@ -73,11 +74,11 @@
 
 // Объекты дисплеев (условная компиляция)
 #if DISPLAY_COUNT >= 1
-Adafruit_SSD1306 display1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+AqaraSocketScreen display1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #endif
 
 #if DISPLAY_COUNT >= 2
-Adafruit_SSD1306 display2(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, -1);
+AqaraSocketScreen display2(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, -1);
 #endif
 
 #if DISPLAY_COUNT >= 4
@@ -87,8 +88,8 @@ Adafruit_SSD1306 display2(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, -1);
 // 1. Использовать I2C мультиплексор TCA9548A
 // 2. Или использовать дисплеи с разными адресами (0x3C, 0x3D)
 // 3. Или использовать программный I2C (требует специальной библиотеки)
-Adafruit_SSD1306 display3(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-Adafruit_SSD1306 display4(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, -1);
+AqaraSocketScreen display3(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+AqaraSocketScreen display4(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire1, -1);
 #endif
 
 // Данные сенсоров
@@ -116,23 +117,6 @@ bool first_update_energy = true;
 
 unsigned long lastUpdate = 0;
 
-// Анимация инициализации (вращающийся индикатор)
-void show_init_animation(Adafruit_SSD1306 &disp) {
-  const char *spinner_chars = "|/-\\"; // Символы для анимации
-  static int spinner_index = 0;
-
-  disp.clearDisplay();
-  disp.setTextSize(2);
-  disp.setTextColor(SSD1306_WHITE);
-
-  // Центрируем анимацию
-  disp.setCursor(50, 20);
-  disp.print(spinner_chars[spinner_index]);
-
-  spinner_index = (spinner_index + 1) % 4; // Цикл через 4 символа
-  disp.display();
-}
-
 // Инициализация LED индикатора WiFi
 #ifdef ENABLE_WIFI_LED
 void init_wifi_led() {
@@ -149,293 +133,38 @@ void update_wifi_led(bool connected) {
 }
 #endif
 
-// Функция форматирования числа с заменой ведущих нулей на пробелы
-// Поддерживает числа до 9999.99
-void format_number(char *buffer, size_t size, float value) {
-  // Форматируем с ведущими нулями (7 символов: 4 цифры + точка + 2 цифры)
-  snprintf(buffer, size, "%07.2f", value);
-
-  // Заменяем ведущие нули на пробелы (но оставляем один ноль перед точкой)
-  for (size_t i = 0; i < strlen(buffer) - 1; i++) {
-    if (buffer[i] == '0' && buffer[i + 1] != '.') {
-      buffer[i] = ' ';
-    } else {
-      break; // Останавливаемся на первой не-нулевой цифре или точке
-    }
-  }
-}
-
-// Кастомные символы стрелок (8x8 пикселей)
-// Стрелка вверх
-static const unsigned char arrow_up_bmp[] = {0B00011000, 0B00111100, 0B01111110,
-                                             0B11111111, 0B00011000, 0B00011000,
-                                             0B00011000, 0B00000000};
-
-// Стрелка вниз
-static const unsigned char arrow_down_bmp[] = {
-    0B00011000, 0B00011000, 0B00011000, 0B11111111,
-    0B01111110, 0B00111100, 0B00011000, 0B00000000};
-
-// Функция для отображения стрелки на дисплее
-void draw_arrow(Adafruit_SSD1306 &disp, int x, int y, bool is_up) {
-  disp.drawBitmap(x, y, is_up ? arrow_up_bmp : arrow_down_bmp, 8, 8,
-                  SSD1306_WHITE);
-}
-
-// Функция для получения типа изменения значения
-// Возвращает: 1 = вверх, -1 = вниз, 0 = без изменений
-int get_change_direction(float current, float previous, bool is_first) {
-  if (is_first) {
-    return 0; // Первое обновление - без стрелки
-  }
-
-  const float threshold =
-      0.01f; // Порог для учета изменений (избегаем дрожания)
-
-  if (current > previous + threshold) {
-    return 1; // Стрелка вверх
-  } else if (current < previous - threshold) {
-    return -1; // Стрелка вниз
-  } else {
-    return 0; // Без изменений
-  }
-}
-
-// Функция отображения одного показателя на дисплее (без метки)
-void show_sensor_value(Adafruit_SSD1306 &disp, const char *label, float value,
-                       bool valid, float prev_value, bool is_first,
-                       const char *unit, int y_pos, uint8_t text_size,
-                       int label_x_pos = 0) {
-  char buffer[32];
-  char full_text[32];
-
-  // Метки убраны - назначение понятно по единице измерения
-
-  // Формируем полный текст значения
-  if (valid) {
-    format_number(buffer, sizeof(buffer), value);
-    snprintf(full_text, sizeof(full_text), "%s %s", buffer, unit);
-  } else {
-    strncpy(full_text, "    .00", sizeof(full_text));
-  }
-
-  // Значение - центрируем по горизонтали
-  disp.setTextSize(text_size);
-  int text_width =
-      strlen(full_text) * 6 * text_size; // Примерная ширина символа 6 пикселей
-  int x_pos = (128 - text_width) / 2;    // Центрируем на экране шириной 128
-  if (x_pos < 0)
-    x_pos = 0; // Не выходим за границы
-  disp.setCursor(x_pos, y_pos);
-  disp.print(full_text);
-
-  // Показываем стрелку изменения справа от текста
-  int change_dir = get_change_direction(value, prev_value, is_first);
-  if (change_dir != 0) {
-    int arrow_x =
-        x_pos + text_width + 2; // Справа от текста с небольшим отступом
-    if (arrow_x + 8 <= 128) {   // Проверяем, что стрелка поместится
-      draw_arrow(disp, arrow_x, y_pos, change_dir == 1);
-    }
-  }
-}
-
-// Функция для выравнивания числа по точке (для 1 экрана)
-// label_len - длина метки (например, "POWER: " = 7)
-// dot_char_position - позиция точки в символах от начала строки (после метки)
-// Возвращает строку с пробелами перед числом, чтобы точка была на фиксированной
-// позиции
-void format_number_aligned(char *output, size_t output_size, float value,
-                           int label_len, int dot_char_position) {
-  char buffer[16];
-  format_number(buffer, sizeof(buffer), value);
-
-  // Находим позицию точки в отформатированном числе
-  char *dot_ptr = strchr(buffer, '.');
-  if (dot_ptr == NULL) {
-    // Если точки нет, просто копируем
-    strncpy(output, buffer, output_size);
-    return;
-  }
-
-  // Позиция точки в отформатированном числе (от начала числа)
-  int dot_pos_in_number = dot_ptr - buffer;
-
-  // Позиция точки должна быть на dot_char_position от начала строки
-  // label_len + spaces + dot_pos_in_number = dot_char_position
-  // spaces = dot_char_position - label_len - dot_pos_in_number
-  int spaces_needed = dot_char_position - label_len - dot_pos_in_number;
-  if (spaces_needed < 0)
-    spaces_needed = 0;
-
-  // Заполняем пробелами
-  int i = 0;
-  for (; i < spaces_needed && i < output_size - 1; i++) {
-    output[i] = ' ';
-  }
-  // Копируем число
-  strncpy(output + i, buffer, output_size - i);
-  output[output_size - 1] = '\0';
-}
-
 // Обновление всех дисплеев в зависимости от конфигурации
 void update_displays() {
+  // Подготовка данных сенсоров
+  SensorData power_data = {power, power_valid, prev_power, first_update_power,
+                           "W"};
+  SensorData voltage_data = {voltage, voltage_valid, prev_voltage,
+                             first_update_voltage, "V"};
+  SensorData current_data = {current, current_valid, prev_current,
+                             first_update_current, "A"};
+  SensorData energy_data = {energy, energy_valid, prev_energy,
+                            first_update_energy, "kWh"};
+
 #if DISPLAY_COUNT == 1
   // 1 экран - все 4 показателя в 4 строки, выровненные по точке (без меток)
-  display1.clearDisplay();
-  display1.setTextSize(1);
-  display1.setTextColor(SSD1306_WHITE);
-
-  char aligned_buffer[32];
-  int line_height = 16;      // Высота строки (64 / 4 = 16)
-  int dot_char_position = 8; // Позиция точки в символах от начала строки
-
-  // POWER - только значение с единицей
-  display1.setCursor(0, 0);
-  if (power_valid) {
-    format_number_aligned(aligned_buffer, sizeof(aligned_buffer), power, 0,
-                          dot_char_position);
-    display1.print(aligned_buffer);
-    display1.print(" W");
-    int change_dir =
-        get_change_direction(power, prev_power, first_update_power);
-    if (change_dir != 0) {
-      draw_arrow(display1, 100, 0, change_dir == 1);
-    }
-  } else {
-    int spaces = dot_char_position - 4; // 4 символа для " .00"
-    if (spaces < 0)
-      spaces = 0;
-    for (int i = 0; i < spaces; i++)
-      display1.print(" ");
-    display1.print("    .00 W");
-  }
-
-  // VOLTAGE - только значение с единицей
-  display1.setCursor(0, line_height);
-  if (voltage_valid) {
-    format_number_aligned(aligned_buffer, sizeof(aligned_buffer), voltage, 0,
-                          dot_char_position);
-    display1.print(aligned_buffer);
-    display1.print(" V");
-    int change_dir =
-        get_change_direction(voltage, prev_voltage, first_update_voltage);
-    if (change_dir != 0) {
-      draw_arrow(display1, 100, line_height, change_dir == 1);
-    }
-  } else {
-    int spaces = dot_char_position - 4;
-    if (spaces < 0)
-      spaces = 0;
-    for (int i = 0; i < spaces; i++)
-      display1.print(" ");
-    display1.print("    .00 V");
-  }
-
-  // ENERGY - только значение с единицей
-  display1.setCursor(0, line_height * 2);
-  if (energy_valid) {
-    format_number_aligned(aligned_buffer, sizeof(aligned_buffer), energy, 0,
-                          dot_char_position);
-    display1.print(aligned_buffer);
-    display1.print(" kWh");
-    int change_dir =
-        get_change_direction(energy, prev_energy, first_update_energy);
-    if (change_dir != 0) {
-      draw_arrow(display1, 100, line_height * 2, change_dir == 1);
-    }
-  } else {
-    int spaces = dot_char_position - 4;
-    if (spaces < 0)
-      spaces = 0;
-    for (int i = 0; i < spaces; i++)
-      display1.print(" ");
-    display1.print("    .00 kWh");
-  }
-
-  // CURRENT - только значение с единицей
-  display1.setCursor(0, line_height * 3);
-  if (current_valid) {
-    format_number_aligned(aligned_buffer, sizeof(aligned_buffer), current, 0,
-                          dot_char_position);
-    display1.print(aligned_buffer);
-    display1.print(" A");
-    int change_dir =
-        get_change_direction(current, prev_current, first_update_current);
-    if (change_dir != 0) {
-      draw_arrow(display1, 100, line_height * 3, change_dir == 1);
-    }
-  } else {
-    int spaces = dot_char_position - 4;
-    if (spaces < 0)
-      spaces = 0;
-    for (int i = 0; i < spaces; i++)
-      display1.print(" ");
-    display1.print("    .00 A");
-  }
-
-  display1.display();
+  display1.showAllSensors(power_data, voltage_data, energy_data, current_data);
 
 #elif DISPLAY_COUNT == 2
   // 2 экрана - по 2 показателя на каждый
   // Первый экран: POWER и VOLTAGE
-  display1.clearDisplay();
-  display1.setTextSize(TEXT_SIZE);
-  display1.setTextColor(SSD1306_WHITE);
-  // POWER - верхняя часть, метка внизу слева
-  show_sensor_value(display1, "POWER", power, power_valid, prev_power,
-                    first_update_power, "W", 0, (uint8_t)TEXT_SIZE, 0);
-  // VOLTAGE - нижняя часть, метка внизу справа
-  show_sensor_value(display1, "VOLTAGE", voltage, voltage_valid, prev_voltage,
-                    first_update_voltage, "V", 32, (uint8_t)TEXT_SIZE, 70);
-  display1.display();
-
+  display1.showTwoSensors(power_data, "POWER", voltage_data, "VOLTAGE", 0, 32,
+                          (uint8_t)TEXT_SIZE);
   // Второй экран: ENERGY и CURRENT
-  display2.clearDisplay();
-  display2.setTextSize(TEXT_SIZE);
-  display2.setTextColor(SSD1306_WHITE);
-  // ENERGY - верхняя часть, метка внизу слева
-  show_sensor_value(display2, "ENERGY", energy, energy_valid, prev_energy,
-                    first_update_energy, "kWh", 0, (uint8_t)TEXT_SIZE, 0);
-  // CURRENT - нижняя часть, метка внизу справа
-  show_sensor_value(display2, "CURRENT", current, current_valid, prev_current,
-                    first_update_current, "A", 32, (uint8_t)TEXT_SIZE, 70);
-  display2.display();
+  display2.showTwoSensors(energy_data, "ENERGY", current_data, "CURRENT", 0, 32,
+                          (uint8_t)TEXT_SIZE);
 
 #elif DISPLAY_COUNT == 4
   // 4 экрана - по 1 показателю на каждый
   // ВНИМАНИЕ: Для работы 4 экранов нужен I2C мультиплексор или разные адреса
-  // Экран 1: POWER
-  display1.clearDisplay();
-  display1.setTextSize(TEXT_SIZE);
-  display1.setTextColor(SSD1306_WHITE);
-  show_sensor_value(display1, "POWER", power, power_valid, prev_power,
-                    first_update_power, "W", 16, (uint8_t)TEXT_SIZE, 0);
-  display1.display();
-
-  // Экран 2: VOLTAGE
-  display2.clearDisplay();
-  display2.setTextSize(TEXT_SIZE);
-  display2.setTextColor(SSD1306_WHITE);
-  show_sensor_value(display2, "VOLTAGE", voltage, voltage_valid, prev_voltage,
-                    first_update_voltage, "V", 16, (uint8_t)TEXT_SIZE, 0);
-  display2.display();
-
-  // Экран 3: ENERGY (требует мультиплексор или другой адрес)
-  display3.clearDisplay();
-  display3.setTextSize(TEXT_SIZE);
-  display3.setTextColor(SSD1306_WHITE);
-  show_sensor_value(display3, "ENERGY", energy, energy_valid, prev_energy,
-                    first_update_energy, "kWh", 16, (uint8_t)TEXT_SIZE, 0);
-  display3.display();
-
-  // Экран 4: CURRENT (требует мультиплексор или другой адрес)
-  display4.clearDisplay();
-  display4.setTextSize(TEXT_SIZE);
-  display4.setTextColor(SSD1306_WHITE);
-  show_sensor_value(display4, "CURRENT", current, current_valid, prev_current,
-                    first_update_current, "A", 16, (uint8_t)TEXT_SIZE, 0);
-  display4.display();
+  display1.showSingleSensor(power_data, "POWER", 16, (uint8_t)TEXT_SIZE);
+  display2.showSingleSensor(voltage_data, "VOLTAGE", 16, (uint8_t)TEXT_SIZE);
+  display3.showSingleSensor(energy_data, "ENERGY", 16, (uint8_t)TEXT_SIZE);
+  display4.showSingleSensor(current_data, "CURRENT", 16, (uint8_t)TEXT_SIZE);
 #endif
 }
 
@@ -452,7 +181,7 @@ void setup() {
 #if DISPLAY_COUNT >= 1
   Wire.begin(OLED1_SDA, OLED1_SCL);
   Serial.println("Инициализация первого OLED SSD1306...");
-  if (!display1.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+  if (!display1.begin(OLED_ADDR)) {
     Serial.println("ОШИБКА: Не удалось инициализировать первый OLED!");
     while (1)
       delay(1000);
@@ -460,7 +189,7 @@ void setup() {
   Serial.println("Первый OLED инициализирован успешно!");
   // Показываем анимацию инициализации
   for (int i = 0; i < 8; i++) {
-    show_init_animation(display1);
+    display1.showInitAnimation();
     delay(150);
   }
 #endif
@@ -468,7 +197,7 @@ void setup() {
 #if DISPLAY_COUNT >= 2
   Wire1.begin(OLED2_SDA, OLED2_SCL);
   Serial.println("Инициализация второго OLED SSD1306...");
-  if (!display2.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+  if (!display2.begin(OLED_ADDR)) {
     Serial.println("ОШИБКА: Не удалось инициализировать второй OLED!");
     while (1)
       delay(1000);
@@ -476,7 +205,7 @@ void setup() {
   Serial.println("Второй OLED инициализирован успешно!");
   // Показываем анимацию инициализации
   for (int i = 0; i < 8; i++) {
-    show_init_animation(display2);
+    display2.showInitAnimation();
     delay(150);
   }
 #endif
@@ -491,13 +220,13 @@ void setup() {
   Serial.println("Инициализация 3-го и 4-го OLED (используют те же шины - "
                  "нужен мультиплексор)...");
   // Пока используем те же шины - для работы нужен мультиплексор
-  if (!display3.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+  if (!display3.begin(OLED_ADDR)) {
     Serial.println("ОШИБКА: Не удалось инициализировать третий OLED!");
   } else {
     Serial.println(
         "Третий OLED инициализирован (требует мультиплексор для работы)!");
   }
-  if (!display4.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+  if (!display4.begin(OLED_ADDR)) {
     Serial.println("ОШИБКА: Не удалось инициализировать четвертый OLED!");
   } else {
     Serial.println(
@@ -505,8 +234,8 @@ void setup() {
   }
   // Показываем анимацию инициализации для 3-го и 4-го экранов
   for (int i = 0; i < 8; i++) {
-    show_init_animation(display3);
-    show_init_animation(display4);
+    display3.showInitAnimation();
+    display4.showInitAnimation();
     delay(150);
   }
 #endif
