@@ -154,7 +154,7 @@ module main_case() {
     [outer_w - 5, outer_l - 5],
   ];
 
-  for (i = [0:3]) {
+  for (i = [0:3])
     translate([screw_positions[i][0], screw_positions[i][1], 0]) {
       if (i == 0) {
         rotate([0, 0, 0])
@@ -170,7 +170,6 @@ module main_case() {
           screw_hole();
       }
     }
-  }
 }
 
 module screw_fill_rotate(i) {

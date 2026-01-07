@@ -103,13 +103,15 @@ module esp32_case() {
         cube([esp32_usb_h + 10, esp32_usb_w, wall_thickness * 4], center=true);
 
     // Вентиляционные отверстия на задней стороне (дно коробки)
+    half_outer_w = esp32_case_outer_w / 2;
+    half_outer_l = esp32_case_outer_l / 2;
     available_w = esp32_case_outer_w - vent_margin * 2;
     available_l = esp32_case_outer_l - vent_margin * 2;
     holes_w = floor(available_w / vent_spacing);
     holes_l = floor(available_l / vent_spacing);
 
-    start_w = -half_w + vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
-    start_l = -half_l + vent_margin + (available_l - (holes_l - 1) * vent_spacing) / 2;
+    start_w = -half_outer_w + vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
+    start_l = -half_outer_l + vent_margin + (available_l - (holes_l - 1) * vent_spacing) / 2;
 
     for (i = [0:holes_w - 1]) {
       for (j = [0:holes_l - 1]) {
