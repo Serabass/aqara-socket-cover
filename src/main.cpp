@@ -10,13 +10,13 @@
 // WiFi
 // Для Wokwi используй "Wokwi-GUEST" без пароля
 // Для реального ESP32 измени на свои данные
-// #if defined(WOKWI)
-#define WIFI_SSID "Wokwi-GUEST"
-#define WIFI_PASSWORD ""
-// #else
-//     #define WIFI_SSID "MikroTik-9DA0AC"
-//     #define WIFI_PASSWORD "MYZLMGFPT3"
-// #endif
+#if defined(WOKWI)
+  #define WIFI_SSID "Wokwi-GUEST"
+  #define WIFI_PASSWORD ""
+#else
+  #define WIFI_SSID "MikroTik-9DA0AC"
+  #define WIFI_PASSWORD "MYZLMGFPT3"
+#endif
 
 // Home Assistant
 #define HA_SERVER "192.168.88.13" // IP адрес Home Assistant
@@ -39,7 +39,7 @@
 // 2 экрана - по 2 показателя на каждый экран (POWER+VOLTAGE, ENERGY+CURRENT)
 // 4 экрана - по 1 показателю на каждый экран (требует I2C мультиплексор или
 // разные адреса)
-#define DISPLAY_COUNT 2
+#define DISPLAY_COUNT 1
 
 // OLED SSD1306 через I2C
 #define SCREEN_WIDTH 128
@@ -163,21 +163,51 @@ void format_number(char *buffer, size_t size, float value) {
   }
 }
 
-// Функция для получения символа изменения значения
-char get_change_symbol(float current, float previous, bool is_first) {
+// Кастомные символы стрелок (8x8 пикселей)
+// Стрелка вверх
+static const unsigned char arrow_up_bmp[] = {
+  0B00011000,
+  0B00111100,
+  0B01111110,
+  0B11111111,
+  0B00011000,
+  0B00011000,
+  0B00011000,
+  0B00000000
+};
+
+// Стрелка вниз
+static const unsigned char arrow_down_bmp[] = {
+  0B00011000,
+  0B00011000,
+  0B00011000,
+  0B11111111,
+  0B01111110,
+  0B00111100,
+  0B00011000,
+  0B00000000
+};
+
+// Функция для отображения стрелки на дисплее
+void draw_arrow(Adafruit_SSD1306& disp, int x, int y, bool is_up) {
+  disp.drawBitmap(x, y, is_up ? arrow_up_bmp : arrow_down_bmp, 8, 8, SSD1306_WHITE);
+}
+
+// Функция для получения типа изменения значения
+// Возвращает: 1 = вверх, -1 = вниз, 0 = без изменений
+int get_change_direction(float current, float previous, bool is_first) {
   if (is_first) {
-    return ' '; // Первое обновление - без стрелки
+    return 0; // Первое обновление - без стрелки
   }
 
-  const float threshold =
-      0.01f; // Порог для учета изменений (избегаем дрожания)
+  const float threshold = 0.01f; // Порог для учета изменений (избегаем дрожания)
 
   if (current > previous + threshold) {
-    return '^'; // Стрелка вверх
+    return 1; // Стрелка вверх
   } else if (current < previous - threshold) {
-    return 'v'; // Стрелка вниз
+    return -1; // Стрелка вниз
   } else {
-    return ' '; // Без изменений
+    return 0; // Без изменений
   }
 }
 
@@ -195,16 +225,6 @@ void show_sensor_value(Adafruit_SSD1306 &disp, const char *label, float value,
   if (valid) {
     format_number(buffer, sizeof(buffer), value);
     snprintf(full_text, sizeof(full_text), "%s %s", buffer, unit);
-    // Показываем стрелку изменения
-    char arrow = get_change_symbol(value, prev_value, is_first);
-    if (arrow != ' ') {
-      int len = strlen(full_text);
-      if (len < sizeof(full_text) - 2) {
-        full_text[len] = ' ';
-        full_text[len + 1] = arrow;
-        full_text[len + 2] = '\0';
-      }
-    }
   } else {
     strncpy(full_text, "    .00", sizeof(full_text));
   }
@@ -218,6 +238,15 @@ void show_sensor_value(Adafruit_SSD1306 &disp, const char *label, float value,
     x_pos = 0; // Не выходим за границы
   disp.setCursor(x_pos, y_pos);
   disp.print(full_text);
+  
+  // Показываем стрелку изменения справа от текста
+  int change_dir = get_change_direction(value, prev_value, is_first);
+  if (change_dir != 0) {
+    int arrow_x = x_pos + text_width + 2; // Справа от текста с небольшим отступом
+    if (arrow_x + 8 <= 128) { // Проверяем, что стрелка поместится
+      draw_arrow(disp, arrow_x, y_pos, change_dir == 1);
+    }
+  }
 }
 
 // Функция для выравнивания числа по точке (для 1 экрана)
@@ -276,12 +305,11 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), power, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-    display1.print(" W");
-    char arrow = get_change_symbol(power, prev_power, first_update_power);
-    if (arrow != ' ') {
-      display1.print(" ");
-      display1.print(arrow);
-    }
+      display1.print(" W");
+      int change_dir = get_change_direction(power, prev_power, first_update_power);
+      if (change_dir != 0) {
+        draw_arrow(display1, 100, 0, change_dir == 1);
+      }
   } else {
     int spaces = dot_char_position - 4; // 4 символа для " .00"
     if (spaces < 0)
@@ -297,12 +325,11 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), voltage, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-    display1.print(" V");
-    char arrow = get_change_symbol(voltage, prev_voltage, first_update_voltage);
-    if (arrow != ' ') {
-      display1.print(" ");
-      display1.print(arrow);
-    }
+      display1.print(" V");
+      int change_dir = get_change_direction(voltage, prev_voltage, first_update_voltage);
+      if (change_dir != 0) {
+        draw_arrow(display1, 100, line_height, change_dir == 1);
+      }
   } else {
     int spaces = dot_char_position - 4;
     if (spaces < 0)
@@ -318,12 +345,11 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), energy, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-    display1.print(" kWh");
-    char arrow = get_change_symbol(energy, prev_energy, first_update_energy);
-    if (arrow != ' ') {
-      display1.print(" ");
-      display1.print(arrow);
-    }
+      display1.print(" kWh");
+      int change_dir = get_change_direction(energy, prev_energy, first_update_energy);
+      if (change_dir != 0) {
+        draw_arrow(display1, 100, line_height * 2, change_dir == 1);
+      }
   } else {
     int spaces = dot_char_position - 4;
     if (spaces < 0)
@@ -339,12 +365,11 @@ void update_displays() {
     format_number_aligned(aligned_buffer, sizeof(aligned_buffer), current, 0,
                           dot_char_position);
     display1.print(aligned_buffer);
-    display1.print(" A");
-    char arrow = get_change_symbol(current, prev_current, first_update_current);
-    if (arrow != ' ') {
-      display1.print(" ");
-      display1.print(arrow);
-    }
+      display1.print(" A");
+      int change_dir = get_change_direction(current, prev_current, first_update_current);
+      if (change_dir != 0) {
+        draw_arrow(display1, 100, line_height * 3, change_dir == 1);
+      }
   } else {
     int spaces = dot_char_position - 4;
     if (spaces < 0)
