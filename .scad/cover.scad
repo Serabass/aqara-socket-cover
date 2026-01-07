@@ -217,20 +217,22 @@ module aqara_logo() {
 //  main_case();
 //
 //// Кольцо для крепления на Aqara розетку
+
 translate([-31.3, 0, 0])
   color("white")
     aqara_rim();
-//
+
 ////// Логотип Aqara
 //translate([33, outer_l / 2, outer_h / 2])
 //  rotate([90, 0, 90])
 //    color("white")
 //      aqara_logo();
 //
-translate([38.95, 0, 0])
+
+translate([20.45, 0, 18.5 / 2])
   rotate([0, 0, 90])
     esp32_case();
-//
+
 //  rotate([0, 0, 90])
 //    translate([0, -34, outer_h - 2])
 //      color("green")

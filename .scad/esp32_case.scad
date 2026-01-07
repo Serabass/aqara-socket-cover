@@ -6,6 +6,7 @@ $fn = 64; // Качество окружностей
 
 // ===== КОНСТАНТЫ КОРПУСА =====
 OUTER_WIDTH = 66.5; // Ширина коробки (константа)
+OUTER_HEIGHT = 18.5; // Высота коробки (константа)
 
 // ===== РАЗМЕРЫ КОМПОНЕНТОВ =====
 esp32_w = 28; // Ширина ESP32
@@ -35,7 +36,7 @@ esp32_case_inner_h = esp32_h + clearance; // Высота с запасом
 
 // ===== ВНЕШНИЕ РАЗМЕРЫ (продолжение) =====
 esp32_case_outer_l = esp32_case_inner_l + wall_thickness * 2; // Внешняя длина
-esp32_case_outer_h = esp32_case_inner_h + bottom_thickness; // Внешняя высота
+esp32_case_outer_h = OUTER_HEIGHT; // Внешняя высота
 
 // ===== ПАРАМЕТРЫ ВИНТОВ =====
 screw_hole_d = 2.5; // Диаметр отверстий под винты
@@ -86,7 +87,7 @@ module esp32_case() {
 
       // Внутренняя полость
       translate([wall_thickness, wall_thickness, bottom_thickness])
-        cube([esp32_case_inner_w, esp32_case_inner_l, esp32_case_inner_h + 1]);
+        cube([esp32_case_inner_w, esp32_case_inner_l, esp32_case_inner_h + 4]);
 
       // Отверстие для USB разъема ESP32 (сбоку, слева)
       translate([0, esp32_case_outer_l / 2, esp32_case_outer_h / 2])
@@ -125,7 +126,7 @@ module esp32_case() {
         }
       }
 
-      // Вентиляционные отверстия справа (по оси Y, где y = outer_l)
+      // Вентиляционные отверстия снизу (по оси Y, где y = outer_l)
       translate([0, esp32_case_outer_l, 0]) {
         available_w = esp32_case_outer_w - vent_margin * 2;
         available_h = esp32_case_outer_h - vent_margin * 2;
@@ -138,8 +139,7 @@ module esp32_case() {
         for (i = [0:holes_w - 1]) {
           for (j = [0:holes_h - 1]) {
             translate([start_w + i * vent_spacing, -35, start_h + j * vent_spacing])
-              rotate([90, 0, 0])
-                cylinder(h=wall_thickness * 3, d=vent_hole_d, center=true);
+              cube([2, 10, 10], center=true);
           }
         }
       }
@@ -148,10 +148,11 @@ module esp32_case() {
     // Бобышки с отверстиями для винтов (4 штуки по углам)
     for (pos = screw_positions) {
       translate([pos[0], pos[1], 0]) {
-        union() {
-          cylinder(h=screw_boss_h, d=screw_boss_d);
-          cylinder(h=screw_boss_h + 5, d=screw_hole_d);
-        }
+        color("blue")
+          union() {
+            cylinder(h=screw_boss_h, d=screw_boss_d);
+            cylinder(h=screw_boss_h + 5, d=screw_hole_d);
+          }
       }
     }
   }
