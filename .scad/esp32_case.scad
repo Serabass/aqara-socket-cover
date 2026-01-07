@@ -41,7 +41,7 @@ screw_offset = 3; // Отступ винтов от края (стенка + н�
 // ===== ПАРАМЕТРЫ ВЕНТИЛЯЦИИ =====
 vent_hole_d = 4; // Диаметр вентиляционных отверстий
 vent_spacing = 6; // Расстояние между центрами отверстий
-vent_margin = wall_thickness + 3; // Отступ вентиляции от края
+vent_margin = wall_thickness; // Отступ вентиляции от края
 
 // ===== ПАРАМЕТРЫ ОТВЕРСТИЙ ESP32 =====
 esp32_mount_hole_d = 3; // Диаметр отверстий для крепления ESP32
@@ -84,14 +84,14 @@ module esp32_case() {
     [half_w - screw_offset, half_l - screw_offset],
   ];
 
-  if ($preview)
-    translate([0, 0, -esp32_case_outer_h / 2 + bottom_thickness + esp32_h / 2])
-      rotate([0, 0, 90])
-        fake_esp32();
+  // if ($preview)
+  //   translate([0, 0, -esp32_case_outer_h / 2 + bottom_thickness + esp32_h / 2])
+  //     rotate([0, 0, 90])
+  //       fake_esp32();
 
   difference() {
     // Внешний корпус (от центра)
-    #cube([esp32_case_outer_w, esp32_case_outer_l, esp32_case_outer_h], center=true);
+    cube([esp32_case_outer_w, esp32_case_outer_l, esp32_case_outer_h], center=true);
 
     // Внутренняя полость (от центра)
     translate([0, 0, (bottom_thickness - top_thickness) / 2])
@@ -102,52 +102,22 @@ module esp32_case() {
       rotate([0, 90, 0])
         cube([esp32_usb_h + 10, esp32_usb_w, wall_thickness * 4], center=true);
 
-    // Вентиляционные отверстия на задней стороне (дно коробки)
-    half_outer_w = esp32_case_outer_w / 2;
-    half_outer_l = esp32_case_outer_l / 2;
-    available_w = esp32_case_outer_w - vent_margin * 2;
-    available_l = esp32_case_outer_l - vent_margin * 2;
-    holes_w = floor(available_w / vent_spacing);
-    holes_l = floor(available_l / vent_spacing);
-
-    start_w = -half_outer_w + vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
-    start_l = -half_outer_l + vent_margin + (available_l - (holes_l - 1) * vent_spacing) / 2;
-
-    for (i = [0:holes_w - 1]) {
-      for (j = [0:holes_l - 1]) {
-        x = start_w + i * vent_spacing;
-        y = start_l + j * vent_spacing;
-
-        // Пропускаем отверстия в области бобышек для винтов
-        skip_hole = false;
-        for (pos = screw_positions) {
-          dist = sqrt(pow(x - pos[0], 2) + pow(y - pos[1], 2));
-          if (dist < screw_boss_d / 2 + vent_hole_d / 2) {
-            skip_hole = true;
-          }
-        }
-
-        if (!skip_hole) {
-          translate([x, y, -esp32_case_outer_h / 2])
-            cylinder(h=bottom_thickness + 1, d=vent_hole_d);
-        }
-      }
-    }
-
     // Вентиляционные отверстия снизу (по оси Y, по центру бокса)
-    available_w = esp32_case_outer_w - vent_margin * 2;
+    available_w = esp32_case_inner_w - vent_margin * 2;
     available_h = esp32_case_inner_h;
-    holes_w = floor(available_w / vent_spacing);
-    holes_h = floor(available_h / vent_spacing);
+    holes_w = max(0, floor(available_w / vent_spacing));
+    holes_h = max(0, floor(available_h / vent_spacing));
 
-    half_outer_w = esp32_case_outer_w / 2;
-    start_w = -half_outer_w + vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
-    start_h = -esp32_case_outer_h / 2 + vent_margin + (available_h - (holes_h - 1) * vent_spacing) / 2;
+    if (holes_w > 0 && holes_h > 0) {
+      half_outer_w = esp32_case_inner_w / 2;
+      start_w = -half_outer_w + vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
+      start_h = -esp32_case_outer_h / 2 + vent_margin + (available_h - (holes_h - 1) * vent_spacing) / 2;
 
-    for (i = [0:holes_w - 1])
-      for (j = [0:holes_h - 1])
-        translate([start_w + i * vent_spacing, 0, start_h + j * vent_spacing])
-          cube([2, 10, 10], center=true);
+      for (i = [0:holes_w - 1])
+        for (j = [0:holes_h - 1])
+          translate([start_w + i * vent_spacing, -esp32_case_inner_h, start_h + j * vent_spacing])
+            cube([3, 10, 5], center=true);
+    }
 
     cube([esp32_case_inner_w, esp32_case_inner_l, esp32_case_inner_h + 8], center=true);
   }
@@ -161,9 +131,45 @@ module esp32_case() {
           cylinder(h=screw_boss_h + 8, d=screw_hole_d);
         }
 
-  // Пол (дно корпуса)
-  translate([0, 0, -esp32_case_outer_h / 2 + bottom_thickness / 2])
-    cube([esp32_case_outer_w, esp32_case_outer_l, bottom_thickness], center=true);
+  difference() {
+    // Пол (дно корпуса)
+    translate([0, 0, -esp32_case_outer_h / 2 + bottom_thickness / 2])
+      cube([esp32_case_outer_w, esp32_case_outer_l, bottom_thickness], center=true);
+
+    // Вентиляционные отверстия на задней стороне (дно коробки)
+    half_inner_w = esp32_case_inner_w / 2;
+    half_inner_l = esp32_case_inner_l / 2;
+    available_w = esp32_case_inner_w - vent_margin * 2;
+    available_l = esp32_case_inner_l - vent_margin * 2;
+    holes_w = max(0, floor(available_w / vent_spacing));
+    holes_l = max(0, floor(available_l / vent_spacing));
+
+    if (holes_w > 0 && holes_l > 0) {
+      start_w = -half_inner_w + vent_margin + (available_w - (holes_w - 1) * vent_spacing) / 2;
+      start_l = -half_inner_l + vent_margin + (available_l - (holes_l - 1) * vent_spacing) / 2;
+
+      for (i = [0:holes_w - 1]) {
+        for (j = [0:holes_l - 1]) {
+          x = start_w + i * vent_spacing;
+          y = start_l + j * vent_spacing;
+
+          // Пропускаем отверстия в области бобышек для винтов
+          skip_hole = false;
+          for (pos = screw_positions) {
+            dist = sqrt(pow(x - pos[0], 2) + pow(y - pos[1], 2));
+            if (dist < screw_boss_d / 2 + vent_hole_d / 2) {
+              skip_hole = true;
+            }
+          }
+
+          if (!skip_hole) {
+            translate([x, y, -esp32_case_inner_h / 2])
+              cylinder(h=bottom_thickness + 5, d=vent_hole_d, center=true);
+          }
+        }
+      }
+    }
+  }
 }
 
 // ===== ПАРАМЕТРЫ КРЫШКИ =====
