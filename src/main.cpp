@@ -14,8 +14,8 @@
   #define WIFI_SSID "Wokwi-GUEST"
   #define WIFI_PASSWORD ""
 #else
-  #define WIFI_SSID "MikroTik-9DA0AC"
-  #define WIFI_PASSWORD "MYZLMGFPT3"
+    #define WIFI_SSID "MikroTik-9DA0AC"
+    #define WIFI_PASSWORD "MYZLMGFPT3"
 #endif
 
 // Home Assistant
