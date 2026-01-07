@@ -42,8 +42,8 @@
   "connections": [
     ["esp32:TX0", "$serialMonitor:RX", "", []],
     ["esp32:RX0", "$serialMonitor:TX", "", []],
-    ["esp32:D15", "oled1:SDA", "green", ["h0"]],
-    ["esp32:D2", "oled1:SCL", "blue", ["h0"]],
+    ["esp32:D22", "oled1:SDA", "green", ["h0"]],
+    ["esp32:D23", "oled1:SCL", "blue", ["h0"]],
     ["esp32:3V3", "oled1:VCC", "red", ["h0"]],
     ["esp32:GND.1", "oled1:GND", "black", ["h0"]],
     ["esp32:D25", "oled2:SDA", "green", ["h0"]],

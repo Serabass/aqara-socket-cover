@@ -11,11 +11,11 @@
 // Для Wokwi используй "Wokwi-GUEST" без пароля
 // Для реального ESP32 измени на свои данные
 // #if defined(WOKWI)
-// #define WIFI_SSID "Wokwi-GUEST"
-// #define WIFI_PASSWORD ""
+#define WIFI_SSID "Wokwi-GUEST"
+#define WIFI_PASSWORD ""
 // #else
-     #define WIFI_SSID "MikroTik-9DA0AC"
-     #define WIFI_PASSWORD "MYZLMGFPT3"
+//     #define WIFI_SSID "MikroTik-9DA0AC"
+//     #define WIFI_PASSWORD "MYZLMGFPT3"
 // #endif
 
 // Home Assistant
@@ -39,7 +39,7 @@
 // 2 экрана - по 2 показателя на каждый экран (POWER+VOLTAGE, ENERGY+CURRENT)
 // 4 экрана - по 1 показателю на каждый экран (требует I2C мультиплексор или
 // разные адреса)
-#define DISPLAY_COUNT 1
+#define DISPLAY_COUNT 2
 
 // OLED SSD1306 через I2C
 #define SCREEN_WIDTH 128
