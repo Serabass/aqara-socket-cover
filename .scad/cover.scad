@@ -227,13 +227,13 @@ translate([-31.3, 0, 0])
 //  rotate([90, 0, 90])
 //    color("white")
 //      aqara_logo();
-//
 
 translate([20.45, 0, 18.5 / 2])
   rotate([0, 0, 90])
     esp32_case();
 
-#rotate([0, 0, 90])
-  translate([0, -20.45, 19.5])
-    color("red")
-      esp32_case_lid();
+//rotate([0, 0, 90])
+//  translate([0, -20.45, 19.5])
+//    color("green")
+//      esp32_case_lid();
+//

@@ -47,27 +47,7 @@ screw_offset = wall_thickness + 3; // Отступ винтов от края (�
 // ===== ПАРАМЕТРЫ ВЕНТИЛЯЦИИ =====
 vent_hole_d = 3; // Диаметр вентиляционных отверстий
 vent_spacing = 6; // Расстояние между центрами отверстий
-vent_margin = wall_thickness + 2; // Отступ вентиляции от края
-
-// ===== МОДУЛЬ ВЕНТИЛЯЦИИ =====
-module ventilation_grid(width, length, height, hole_d, spacing, margin) {
-  // Вычисляем количество отверстий по каждой оси
-  available_w = width - margin * 2;
-  available_l = length - margin * 2;
-  holes_w = floor(available_w / spacing);
-  holes_l = floor(available_l / spacing);
-
-  // Центрируем сетку
-  start_w = margin + (available_w - (holes_w - 1) * spacing) / 2;
-  start_l = margin + (available_l - (holes_l - 1) * spacing) / 2;
-
-  for (i = [0:holes_w - 1]) {
-    for (j = [0:holes_l - 1]) {
-      translate([start_w + i * spacing, start_l + j * spacing, 0])
-        cylinder(h=height + 1, d=hole_d, center=true);
-    }
-  }
-}
+vent_margin = wall_thickness + 3; // Отступ вентиляции от края
 
 // ===== ОСНОВНОЙ КОРПУС ESP32 =====
 module esp32_case() {
@@ -214,8 +194,8 @@ module esp32_case_lid() {
       ];
 
       for (pos = screw_positions) {
-        translate([pos[0], pos[1], -0.5])
-          cylinder(h=top_thickness + 1, d=screw_hole_d);
+        translate([pos[0], pos[1], 0])
+          cylinder(h=top_thickness + 7, d=screw_hole_d, center=true);
       }
     }
   }
