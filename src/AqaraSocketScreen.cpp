@@ -14,6 +14,8 @@ const unsigned char AqaraSocketScreen::arrow_down_bmp[] = {
 
 // Статический индекс для анимации
 int AqaraSocketScreen::spinner_index = 0;
+// Позиция точки для анимации
+int AqaraSocketScreen::dot_position = 0;
 
 // Конструктор
 AqaraSocketScreen::AqaraSocketScreen(int width, int height, TwoWire *wire,
@@ -25,19 +27,32 @@ bool AqaraSocketScreen::begin(uint8_t i2caddr, bool init_sequence) {
   return Adafruit_SSD1306::begin(SSD1306_SWITCHCAPVCC, i2caddr, init_sequence);
 }
 
-// Анимация инициализации (вращающийся индикатор)
+// Анимация инициализации (точка бегает от края до края)
 void AqaraSocketScreen::showInitAnimation() {
-  const char *spinner_chars = "|/-\\"; // Символы для анимации
-
   clearDisplay();
-  setTextSize(2);
-  setTextColor(SSD1306_WHITE);
 
-  // Центрируем анимацию
-  setCursor(50, 20);
-  print(spinner_chars[spinner_index]);
+  // Вычисляем реальную позицию X (0-127 туда, 127-0 обратно)
+  int x_pos;
+  if (dot_position < 128) {
+    // Движение вправо (0 -> 127)
+    x_pos = dot_position;
+  } else {
+    // Движение влево (127 -> 0)
+    x_pos = 254 - dot_position;
+  }
 
-  spinner_index = (spinner_index + 1) % 4; // Цикл через 4 символа
+  // Рисуем точку по центру экрана по вертикали
+  int y_pos = 32; // Центр экрана (64 / 2 = 32)
+
+  // Рисуем точку размером 3x3 для лучшей видимости
+  fillCircle(x_pos, y_pos, 2, SSD1306_WHITE);
+
+  // Обновляем позицию (0-254, потом цикл обратно)
+  dot_position += 5; // Увеличено для более быстрой анимации
+  if (dot_position >= 254) {
+    dot_position = 0; // Сбрасываем в начало для плавного цикла
+  }
+
   display();
 }
 

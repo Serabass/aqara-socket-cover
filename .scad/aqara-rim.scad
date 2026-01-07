@@ -15,13 +15,13 @@ module aqara_rim() {
             // Основное кольцо обода
             cylinder(h=rim_height, d=rim_outer_d);
 
-            translate([0, -rim_outer_d / 2, -0.5])
-            cube([rim_outer_d / 2, rim_outer_d, rim_height + 0.5]);
+            translate([0, -rim_outer_d / 2, 0])
+              cube([rim_outer_d / 2, rim_outer_d, rim_height]);
           }
 
           // Внутреннее отверстие (надевается на розетку)
-          translate([0, 0, -0.5])
-            cylinder(h=rim_height + 1, d=rim_inner_d);
+          translate([0, 0, -2.5])
+            cylinder(h=rim_height + 10, d=rim_inner_d);
         }
 
         translate([-35, 0, outer_h / 2])

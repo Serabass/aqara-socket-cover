@@ -227,7 +227,7 @@ translate([-31.3, outer_l / 2, 0])
 //    color("white")
 //      aqara_logo();
 //
-translate([42, -4, 0])
+translate([38.95, -3.8, 0])
   rotate([0, 0, 90])
       esp32_case();
 //

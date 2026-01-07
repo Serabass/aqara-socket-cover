@@ -53,6 +53,8 @@ private:
 
   // Индекс для анимации (статический, чтобы был общий для всех экземпляров)
   static int spinner_index;
+  // Позиция точки для анимации (0-254: 0-127 туда, 128-254 обратно)
+  static int dot_position;
 };
 
 #endif // AQARA_SOCKET_SCREEN_H
