@@ -11,11 +11,11 @@ module esp_case() {
     // USB отверстие слева
     translate([-ESP32_WIDTH, 0, 1])
       cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
-    
+
     // USB отверстие справа
     translate([ESP32_WIDTH, 0, 1])
       cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
-    
+
     // Ventilation holes in the bottom
     ventilation_holes();
   }
@@ -29,7 +29,7 @@ module esp_case() {
 
   for (pos = boss_positions)
     translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
-      esp_boss(cube_base = true);
+      esp_boss(cube_base=true);
 }
 
 module ventilation_holes(
@@ -42,8 +42,8 @@ module ventilation_holes(
   rows = floor(depth / spacing);
   cols = floor(width / spacing);
 
-  for (row = [-(rows-1)/2:(rows-1)/2]) 
-    for (col = [-(cols-1)/2:(cols-1)/2]) 
+  for (row = [-(rows - 1) / 2:(rows - 1) / 2])
+    for (col = [-(cols - 1) / 2:(cols - 1) / 2])
       translate([col * spacing, row * spacing, -height / 2 - 1])
         cylinder(h=height + 2, d=hole_diameter, center=true);
 }
