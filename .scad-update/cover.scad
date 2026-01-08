@@ -1,10 +1,13 @@
 include <constants.scad>;
 
 use <aqara-rim.scad>;
+use <esp-case.scad>;
+use <esp-boss.scad>;
 
-aqara_rim();
-//difference() {
-//  cube([ESP32_LENGTH, AQARA_RIM_OUTER_D, GLOBAL_HEIGHT], center=true);
-//  translate([0, 0, -GLOBAL_HEIGHT / 2])
-//    cube([ESP32_LENGTH, ESP32_WIDTH, GLOBAL_HEIGHT], center=true);
-//}
+union() {
+  //aqara_rim();
+
+  //translate([0, -AQARA_RIM_OUTER_D + ESP32_WIDTH / 2, 0])
+  //  esp_case();
+  esp_boss(cube_base = true);
+}
