@@ -13,7 +13,9 @@ module esp_case() {
   difference() {
     difference() {
       difference() {
+        // внешний корпус
         cube([AQARA_RIM_OUTER_D, ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT], center=true);
+        // полость для ESP32
         translate([0, 0, 1])
           cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
       }
@@ -33,7 +35,7 @@ module esp_case() {
     if (ESP_LID_MOUNT_TYPE == "magnet")
       color("blue")for (pos = lid_boss_positions)
         translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
-          lid_boss();
+          #lid_boss();
   }
 
   boss_positions = [
