@@ -8,7 +8,7 @@ module esp_case() {
 
   difference() {
     cube([AQARA_RIM_OUTER_D, ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT], center=true);
-    translate([0, 0, 3])
+    translate([0, 0, 1])
       cube([ESP32_LENGTH + CLEARANCE * 2, ESP32_WIDTH + CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
   }
 
@@ -21,6 +21,6 @@ BOSS_CLEARANCE = 2;
   ];
 
   for (pos = boss_positions)
-    translate([pos[0], pos[1], 0])
+    translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
       esp_boss(cube_base = true);
 }
