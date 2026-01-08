@@ -2,6 +2,7 @@
 $fn = 64; // Качество окружностей
 
 GLOBAL_HEIGHT = 15;
+GLOBAL_BOSS_DIAMETER = 2.5;
 
 // Aqara розетка
 AQARA_DIAMETER = 60;
@@ -12,7 +13,7 @@ AQARA_RIM_OUTER_D = AQARA_RIM_INNER_D + AQARA_RIM_THICKNESS * 2;
 
 // ESP32
 ESP32_WIDTH = 25.4;
-ESP32_LENGTH = 53.3;
+ESP32_LENGTH = 51.8;
 ESP32_HEIGHT = 13;
 ESP32_WALL_THICKNESS = 5;
 ESP32_CLEARANCE = 2;
@@ -23,7 +24,7 @@ ESP32_USB_HOLE_WIDTH = 10;
 
 // ESP крышка с экраном
 ESP_LID_BOSS_CLEARANCE = 2;
-ESP_LID_BOSS_DIAMETER = 2;
+ESP_LID_BOSS_DIAMETER = GLOBAL_BOSS_DIAMETER;
 ESP_LID_BOSS_HEIGHT = 3;
 
 // OLED экран
@@ -38,5 +39,5 @@ OLED_MOUNT_HOLE_OFFSET = 2; // Отступ отверстий от края п�
 // Бобышка
 BOSS_BASE_DIAMETER = 6;
 BOSS_BASE_HEIGHT = 2;
-BOSS_DIAMETER = 2;
+BOSS_DIAMETER = GLOBAL_BOSS_DIAMETER;
 BOSS_HEIGHT = 7;
