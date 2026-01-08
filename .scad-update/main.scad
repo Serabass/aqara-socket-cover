@@ -12,6 +12,6 @@ union() {
   esp_case();
 
   // Рендерим крышку
-  //translate([0, 0, GLOBAL_HEIGHT])
-  //  esp_lid();
+  translate([0, 0, GLOBAL_HEIGHT])
+    esp_lid();
 }

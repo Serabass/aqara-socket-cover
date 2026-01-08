@@ -30,10 +30,18 @@ module esp_lid() {
     // Основная пластина крышки
     cube([lid_width, lid_length, lid_thickness], center=true);
 
-    // Отверстия для крепления к бобышкам корпуса
-    for (pos = lid_boss_positions) {
-      translate([pos[0], pos[1], 0])
-        cylinder(h=lid_thickness + 1, d=ESP_LID_BOSS_DIAMETER + 0.2, center=true);
+    if (ESP_LID_MOUNT_TYPE == "boss") {
+      // Отверстия для крепления к бобышкам корпуса
+      for (pos = lid_boss_positions) {
+        translate([pos[0], pos[1], 0])
+          cylinder(h=lid_thickness + 1, d=ESP_LID_BOSS_DIAMETER + 0.2, center=true);
+      }
+    } else if (ESP_LID_MOUNT_TYPE == "magnet") {
+      // Отверстия для крепления к магнитам корпуса
+      for (pos = lid_boss_positions) {
+        translate([pos[0], pos[1], -1])
+          cylinder(h=lid_thickness + 1, d=MAGNET_DIAMETER + 0.2, center=true);
+      }
     }
   }
 
