@@ -19,6 +19,7 @@ module esp_case() {
         translate([0, 0, 1])
           cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
       }
+
       if (ESP32_USB_HOLE_DIRECTION == "left" || ESP32_USB_HOLE_DIRECTION == "both")
       // USB отверстие слева
       translate([-ESP32_WIDTH, 0, 1])

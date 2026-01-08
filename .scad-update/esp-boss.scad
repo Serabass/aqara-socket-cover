@@ -9,6 +9,6 @@ module esp_boss(cube_base = false) {
           cube([BOSS_BASE_DIAMETER, BOSS_BASE_DIAMETER, BOSS_BASE_HEIGHT], center=true);
       else
         cylinder(h=BOSS_BASE_HEIGHT, d=BOSS_BASE_DIAMETER);
-      cylinder(h=BOSS_HEIGHT, d=BOSS_DIAMETER);
+      cylinder(h=BOSS_HEIGHT, d=ESP32_BOSS_DIAMETER);
     }
 }
