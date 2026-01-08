@@ -11,6 +11,9 @@ module esp_case() {
     }
     translate([-ESP32_WIDTH, 0, 1])
       cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
+    
+    // Ventilation holes in the bottom
+    ventilation_holes();
   }
 
   boss_positions = [
@@ -23,4 +26,22 @@ module esp_case() {
   for (pos = boss_positions)
     translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
       esp_boss(cube_base = true);
+}
+
+module ventilation_holes(
+  width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
+  depth = ESP32_WIDTH + ESP32_WALL_THICKNESS * 2,
+  height = GLOBAL_HEIGHT,
+  hole_diameter = 4,
+  spacing = 8
+) {
+  rows = floor(depth / spacing);
+  cols = floor(width / spacing);
+  
+  for (row = [-(rows-1)/2:(rows-1)/2]) {
+    for (col = [-(cols-1)/2:(cols-1)/2]) {
+      translate([col * spacing, row * spacing, -height / 2 - 1])
+        cylinder(h=height + 2, d=hole_diameter, center=true);
+    }
+  }
 }
