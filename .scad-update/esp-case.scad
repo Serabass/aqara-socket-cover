@@ -8,13 +8,14 @@ module esp_case() {
       translate([0, 0, 1])
         cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
     }
+    if (ESP32_USB_HOLE_DIRECTION == "left" || ESP32_USB_HOLE_DIRECTION == "both")
     // USB отверстие слева
     translate([-ESP32_WIDTH, 0, 1])
       cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
 
-    // USB отверстие справа
-    translate([ESP32_WIDTH, 0, 1])
-      cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
+    if (ESP32_USB_HOLE_DIRECTION == "right" || ESP32_USB_HOLE_DIRECTION == "both")
+      translate([ESP32_WIDTH, 0, 1])
+        cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
 
     // Ventilation holes in the bottom
     ventilation_holes();
@@ -30,6 +31,23 @@ module esp_case() {
   for (pos = boss_positions)
     translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
       esp_boss(cube_base=true);
+
+  // Бобышки для крышки в верхней части
+  lid_boss_positions = [
+    [-AQARA_RIM_OUTER_D / 2 + ESP_LID_BOSS_CLEARANCE, -(ESP32_WIDTH + ESP32_WALL_THICKNESS * 2) / 2 + ESP_LID_BOSS_CLEARANCE],
+    [AQARA_RIM_OUTER_D / 2 - ESP_LID_BOSS_CLEARANCE, -(ESP32_WIDTH + ESP32_WALL_THICKNESS * 2) / 2 + ESP_LID_BOSS_CLEARANCE],
+    [-AQARA_RIM_OUTER_D / 2 + ESP_LID_BOSS_CLEARANCE, (ESP32_WIDTH + ESP32_WALL_THICKNESS * 2) / 2 - ESP_LID_BOSS_CLEARANCE],
+    [AQARA_RIM_OUTER_D / 2 - ESP_LID_BOSS_CLEARANCE, (ESP32_WIDTH + ESP32_WALL_THICKNESS * 2) / 2 - ESP_LID_BOSS_CLEARANCE],
+  ];
+
+  for (pos = lid_boss_positions)
+    translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
+      lid_boss();
+}
+
+module lid_boss() {
+  translate([0, 0, -ESP_LID_BOSS_HEIGHT / 2])
+    cylinder(h=ESP_LID_BOSS_HEIGHT, d=ESP_LID_BOSS_DIAMETER);
 }
 
 module ventilation_holes(
