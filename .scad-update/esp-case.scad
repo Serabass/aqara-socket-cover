@@ -41,11 +41,9 @@ module ventilation_holes(
 ) {
   rows = floor(depth / spacing);
   cols = floor(width / spacing);
-  
-  for (row = [-(rows-1)/2:(rows-1)/2]) {
-    for (col = [-(cols-1)/2:(cols-1)/2]) {
+
+  for (row = [-(rows-1)/2:(rows-1)/2]) 
+    for (col = [-(cols-1)/2:(cols-1)/2]) 
       translate([col * spacing, row * spacing, -height / 2 - 1])
         cylinder(h=height + 2, d=hole_diameter, center=true);
-    }
-  }
 }
