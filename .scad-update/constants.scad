@@ -26,6 +26,15 @@ ESP_LID_BOSS_CLEARANCE = 2;
 ESP_LID_BOSS_DIAMETER = 2;
 ESP_LID_BOSS_HEIGHT = 3;
 
+// OLED экран
+OLED_WIDTH = 27;
+OLED_LENGTH = 27;
+OLED_HEIGHT = 4;
+OLED_DISPLAY_WIDTH = 25; // Видимая область экрана
+OLED_DISPLAY_LENGTH = 25;
+OLED_MOUNT_HOLE_D = 2.2; // Отверстия под винты на плате OLED
+OLED_MOUNT_HOLE_OFFSET = 2; // Отступ отверстий от края платы
+
 // Бобышка
 BOSS_BASE_DIAMETER = 6;
 BOSS_BASE_HEIGHT = 2;
