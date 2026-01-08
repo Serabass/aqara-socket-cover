@@ -18,7 +18,7 @@ module esp_case() {
         cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
 
     // Ventilation holes in the bottom
-    ventilation_holes();
+    //ventilation_holes();
   }
 
   boss_positions = [
