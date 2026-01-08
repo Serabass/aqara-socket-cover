@@ -15,7 +15,7 @@ module fake_esp32() {
         cube([ESP32_LENGTH, ESP32_WIDTH, 2], center=true);
         for (pos = boss_positions)
           translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
-            esp_boss(cube_base=true);
+            #esp_boss(cube_base=true);
       }
 
     color("red")
