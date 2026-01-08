@@ -1,104 +1,76 @@
-// Корпус для ESP32 DevKit V1 + OLED SSD1306 + Aqara накладная розетка
-// Размеры компонентов:
-// ESP32 DevKit V1: 25.4mm x 53.3mm x 13mm (с USB разъемом)
-// OLED SSD1306: 27mm x 27mm x 4mm (модуль)
-// Aqara накладная розетка: ~85mm диаметр, ~20mm высота
+// Главный файл сборки корпуса для ESP32 + OLED + Aqara розетка
+// Все координаты вычисляются параметрически
 
-$fn = 64; // Качество окружностей
-
-// ===== РАЗМЕРЫ КОМПОНЕНТОВ =====
-esp32_w = 25.4; // Ширина ESP32
-esp32_l = 53.3; // Длина ESP32
-esp32_h = 13; // Высота ESP32 (с компонентами)
-esp32_usb_w = 12; // Ширина USB разъема
-esp32_usb_h = 5; // Высота USB разъема
-
-oled_w = 25; // Ширина OLED
-oled_l = 25; // Длина OLED
-oled_h = 1.6; // Высота OLED
-oled_display_w = 25; // Ширина видимой области (с зазором)
-oled_display_l = 25; // Длина видимой области
-
-// ===== ПАРАМЕТРЫ КОРПУСА =====
-wall_thickness = 2; // Толщина стенок
-bottom_thickness = 2; // Толщина дна
-top_thickness = 2; // Толщина крышки
-clearance = 1.5; // Зазор между компонентами и стенками
-
-// ===== РАЗМЕРЫ AQARA РОЗЕТКИ =====
-aqara_diameter = 60; // Диаметр накладной розетки
-aqara_height = 20; // Высота части, которая накладывается
-aqara_inner_d = 75; // Внутренний диаметр (для крепления)
-
-aqara_button_diameter = 15; // Диаметр кнопки
-
-// ===== ВНУТРЕННИЕ РАЗМЕРЫ КОРПУСА =====
-// ESP32 размещаем вдоль, OLED рядом
-inner_w = esp32_l + clearance * 2; // Ширина = длина ESP32
-inner_l = esp32_w + oled_w + clearance * 3; // Длина = ширина ESP32 + OLED + зазоры
-inner_h = max(esp32_h, oled_h) + clearance + 2; // Высота с запасом
-
-// ===== ВНЕШНИЕ РАЗМЕРЫ =====
-outer_w = inner_w + wall_thickness * 2;
-outer_l = inner_l + wall_thickness * 2;
-outer_h = inner_h + bottom_thickness;
-
-// ===== ПАРАМЕТРЫ ВИНТОВ =====
-screw_hole_d = 2.5; // Диаметр отверстий под винты
-screw_boss_h = outer_h; // Высота бобышек под винты
-screw_boss_d = 6; // Диаметр бобышек под винты
-
+include <constants.scad>;
 use <screen_mount.scad>;
 use <wedge.scad>;
 include <esp32_case.scad>;
 include <aqara-rim.scad>;
 
-// ===== ВСПОМОГАТЕЛЬНЫЕ МОДУЛИ =====
+// ===== ВЫЧИСЛЯЕМЫЕ РАЗМЕРЫ =====
+function inner_width() = ESP32_LENGTH + CLEARANCE * 2;
+function inner_length() = ESP32_WIDTH + OLED_WIDTH + CLEARANCE * 3;
+function inner_height() = max(ESP32_HEIGHT, OLED_HEIGHT) + CLEARANCE + 2;
 
-module cut_round_cube() {
-  width = 6;
-  difference() {
-    cube([width, rim_thickness + 1, outer_h + 2], center=true);
-    translate([width / 2, 0, 0])
-      rotate([0, 0, 0])
-        cylinder(h=outer_h + 2, d=rim_thickness, center=true);
-    translate([-width / 2, 0, 0])
-      rotate([0, 0, 0])
-        cylinder(h=outer_h + 2, d=rim_thickness, center=true);
-  }
-}
+function outer_width() = inner_width() + WALL_THICKNESS * 2;
+function outer_length() = inner_length() + WALL_THICKNESS * 2;
+function outer_height() = inner_height() + BOTTOM_THICKNESS;
 
+// ===== ПОЗИЦИОНИРОВАНИЕ КОМПОНЕНТОВ =====
+// Центр координат - центр Aqara розетки
+// ESP32 корпус размещается справа от центра
+// Aqara обод - слева от центра
+// Используем функции из esp32_case.scad (доступны через include выше)
+
+function aqara_rim_x() = -(outer_width() / 2 + AQARA_DIAMETER / 2 + 5);
+function esp32_case_x() = outer_width() / 2 - esp32_case_inner_length() / 2;
+function esp32_case_z() = outer_height() / 2;
+function logo_x() = esp32_case_x() + 5;
+function logo_y() = outer_length() / 2 - 3;
+function logo_z() = outer_height() / 2;
+
+// ===== МОДУЛЬ ЛОГОТИПА AQARA =====
 module aqara_logo() {
   linear_extrude(height=6)
     import("aqara_logo.svg", center=true);
 }
 
-// ===== СБОРКА =====
-//
-//// Основной корпус
-//translate([0, 0, 0])
-//  main_case();
-//
-// Кольцо для крепления на Aqara розетку
+// ===== ОСНОВНОЙ КОРПУС (если нужен отдельно) =====
+module main_case() {
+  difference() {
+    // Внешний корпус
+    cube([outer_width(), outer_length(), outer_height()], center=true);
 
-translate([-31.3, 0, 0])
-  color("white")
-    aqara_rim();
-
-difference() {
-  translate([19.45, 0, 18.5 / 2])
-    rotate([0, 0, 90])
-      esp32_case();
-
-  //// Логотип Aqara
-  translate([20, outer_l / 2 - 3, outer_h / 2])
-    rotate([90, 0, 180])
-      color("white")
-        aqara_logo();
+    // Внутренняя полость
+    translate([0, 0, BOTTOM_THICKNESS / 2])
+      cube([inner_width(), inner_length(), inner_height() + 1], center=true);
+  }
 }
-// 
-// rotate([0, 0, 90])
-//   translate([0, -19.45, 19.5])
-//     color("green")
-//       esp32_case_lid();
+
+// ===== СБОРКА =====
+// Раскомментируй нужные части для рендеринга
+
+// Aqara обод
+//translate([aqara_rim_x(), 0, 0])
+//  color("white")
+//    aqara_rim(rim_height=outer_height());
+
+//// ESP32 корпус с вырезом под логотип
+//difference() {
+// translate([esp32_case_x(), 0, esp32_case_z()])
+//   rotate([0, 0, 90])
+//     esp32_case();
 //
+//  // Логотип Aqara (вырез)
+//  translate([logo_x(), logo_y(), logo_z()])
+//    rotate([90, 0, 180])
+//      color("white")
+//        aqara_logo();
+//}
+
+// Крышка ESP32 (раскомментируй если нужно)
+//rotate([0, 0, 90])
+//  translate([0, -esp32_case_x(), outer_height()])
+//    color("green")
+//      esp32_case_lid();
+esp32_case();

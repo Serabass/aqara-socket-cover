@@ -1,0 +1,1 @@
+GLOBA_HEIGHT = 30;
