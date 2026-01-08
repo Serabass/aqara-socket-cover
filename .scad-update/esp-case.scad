@@ -1,5 +1,4 @@
 include <constants.scad>;
-
 use <esp-boss.scad>;
 
 module esp_case() {
@@ -9,7 +8,12 @@ module esp_case() {
       translate([0, 0, 1])
         cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
     }
+    // USB отверстие слева
     translate([-ESP32_WIDTH, 0, 1])
+      cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
+    
+    // USB отверстие справа
+    translate([ESP32_WIDTH, 0, 1])
       cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
     
     // Ventilation holes in the bottom
@@ -32,8 +36,8 @@ module ventilation_holes(
   width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
   depth = ESP32_WIDTH + ESP32_WALL_THICKNESS * 2,
   height = GLOBAL_HEIGHT,
-  hole_diameter = 4,
-  spacing = 8
+  hole_diameter = 3,
+  spacing = 6
 ) {
   rows = floor(depth / spacing);
   cols = floor(width / spacing);
