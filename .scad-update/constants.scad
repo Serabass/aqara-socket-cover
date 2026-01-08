@@ -38,9 +38,9 @@ OLED_MOUNT_HOLE_OFFSET = 2; // Отступ отверстий от края п�
 
 // Бобышка
 BOSS_BASE_DIAMETER = 6;
-BOSS_BASE_HEIGHT = 2;
+BOSS_BASE_HEIGHT = 5;
 BOSS_DIAMETER = GLOBAL_BOSS_DIAMETER;
-BOSS_HEIGHT = 7;
+BOSS_HEIGHT = 10;
 
 // Магнит
 MAGNET_DIAMETER = 5;
