@@ -178,7 +178,7 @@ oled_display_margin = 2; // Отступ вокруг видимой облас�
 // ===== ПАРАМЕТРЫ КРЕПЛЕНИЙ ЭКРАНА =====
 screen_mount_d = 2.5; // Диаметр креплений для экрана
 screen_mount_h = 2; // Высота креплений для экрана
-screen_mount_offset = 2; // Отступ креплений от края OLED
+screen_mount_offset = 4; // Отступ креплений от края OLED
 
 // ===== ПАРАМЕТРЫ ОТВЕРСТИЯ ДЛЯ ПРОВОДОВ =====
 dupont_hole_w = 10; // Ширина отверстия для 4 проводов dupont
@@ -201,7 +201,7 @@ module esp32_case_lid() {
     cube([esp32_case_outer_w, esp32_case_outer_l, top_thickness], center=true);
 
     // Отверстие для 4 проводов dupont (10мм)
-    translate([0, oled_l / 2 - screen_mount_offset, 0])
+    translate([0, oled_l / 2 - screen_mount_offset + 1, 0])
       cube([dupont_hole_w + 2, dupont_hole_h + 1, 10], center=true);
 
     // Вентиляционные отверстия в крышке (сетка, исключая область OLED)
@@ -243,8 +243,8 @@ module esp32_case_lid() {
 
   // Крепления для экрана (4 бобышки по углам OLED)
   screen_mount_positions = [
-    [oled_x + screen_mount_offset, oled_y + screen_mount_offset],
-    [oled_x + oled_w - screen_mount_offset, oled_y + screen_mount_offset],
+    [oled_x + screen_mount_offset, oled_y + screen_mount_offset - 1],
+    [oled_x + oled_w - screen_mount_offset, oled_y + screen_mount_offset - 1],
     [oled_x + screen_mount_offset, oled_y + oled_l - screen_mount_offset],
     [oled_x + oled_w - screen_mount_offset, oled_y + oled_l - screen_mount_offset],
   ];
