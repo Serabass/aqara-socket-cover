@@ -12,7 +12,7 @@ module fake_esp32() {
   if ($preview) {
     color("green", alpha=0.3)
       difference() {
-        cube([ESP32_LENGTH, ESP32_WIDTH, 2], center=true);
+        cube([ESP32_LENGTH, ESP32_WIDTH, ESP32_HEIGHT], center=true);
         for (pos = boss_positions)
           translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
             #esp_boss(cube_base=true);

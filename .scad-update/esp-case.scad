@@ -3,7 +3,6 @@ use <esp-boss.scad>;
 use <fake-esp32.scad>;
 
 module esp_case() {
-  fake_esp32();
   // Бобышки для крышки в верхней части
   lid_boss_positions = [
     [-AQARA_RIM_OUTER_D / 2 + ESP_LID_BOSS_CLEARANCE, -(ESP32_WIDTH + ESP32_WALL_THICKNESS * 2) / 2 + ESP_LID_BOSS_CLEARANCE],
