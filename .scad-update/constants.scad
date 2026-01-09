@@ -22,6 +22,7 @@ ESP32_BOSS_CLEARANCE = 1;
 ESP32_USB_HOLE_DIRECTION = "both"; // left / right / both 
 
 ESP32_USB_HOLE_WIDTH = 13;
+ESP32_FLOOR_THICKNESS = 2;
 
 // ESP крышка с экраном
 ESP_LID_BOSS_CLEARANCE = 2.7;
