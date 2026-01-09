@@ -14,11 +14,17 @@ module esp_case() {
   difference() {
     difference() {
       difference() {
-        // внешний корпус
-        cube([AQARA_RIM_OUTER_D, ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT], center=true);
-        // полость для ESP32
-        translate([0, 0, 1])
-          cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
+        difference() {
+          // внешний корпус
+          cube([AQARA_RIM_OUTER_D, ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT], center=true);
+          // полость для ESP32
+          translate([0, 0, 1])
+            cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
+        }
+
+        if (VENTILATION)
+          translate([0, -ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT / 2])
+            ventilation_gaps();
       }
 
       // USB отверстие слева
@@ -32,9 +38,8 @@ module esp_case() {
           usb_hole();
 
       // Ventilation holes in the bottom
-      if (VENTILATION) {
+      if (VENTILATION)
         ventilation_holes();
-      }
     }
 
     if (ESP_LID_MOUNT_TYPE == "magnet")
@@ -115,4 +120,19 @@ module ventilation_holes(
     for (col = [-(cols - 1) / 2:(cols - 1) / 2])
       translate([col * spacing, row * spacing, -height / 2 - 1])
         cylinder(h=height + 2, d=hole_diameter, center=true);
+}
+
+module ventilation_gaps(
+  width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
+  depth = ESP32_WIDTH + ESP32_WALL_THICKNESS * 2,
+  height = GLOBAL_HEIGHT,
+  hole_width = 2,
+  spacing = 6
+) {
+  rows = floor(depth / spacing);
+  cols = floor(width / spacing);
+
+  for (col = [-(cols - 1) / 2:(cols - 1) / 2])
+    translate([col * spacing, 0, -height / 2 - 1])
+      cube([hole_width, spacing, height / 2], center=true);
 }
