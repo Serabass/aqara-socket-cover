@@ -20,7 +20,7 @@ difference() {
     }
   }
 
-  if(RENDER_AQARA_LOGO)
+  if (RENDER_AQARA_LOGO)
     rotate([0, 0, 90])
       rotate([90, 90, 0])
         rotate([0, 0, 90])

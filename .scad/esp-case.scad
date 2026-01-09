@@ -19,7 +19,7 @@ module esp_case() {
           // внешний корпус
           cube([AQARA_RIM_OUTER_D, ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT], center=true);
           // полость для ESP32
-          #translate([0, 0, ESP32_FLOOR_THICKNESS])
+          translate([0, 0, ESP32_FLOOR_THICKNESS])
             cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
         }
 
@@ -30,12 +30,12 @@ module esp_case() {
 
       // USB отверстие слева
       if (ESP32_USB_HOLE_DIRECTION == "left" || ESP32_USB_HOLE_DIRECTION == "both")
-        translate([-ESP32_WIDTH, 0, ESP32_FLOOR_THICKNESS])
+        translate([-ESP32_LENGTH / 2 - ESP32_WALL_THICKNESS / 2, 0, ESP32_FLOOR_THICKNESS])
           usb_hole();
 
       // USB отверстие справа
       if (ESP32_USB_HOLE_DIRECTION == "right" || ESP32_USB_HOLE_DIRECTION == "both")
-        translate([ESP32_WIDTH, 0, ESP32_FLOOR_THICKNESS])
+        translate([ESP32_LENGTH / 2 + ESP32_WALL_THICKNESS / 2, 0, ESP32_FLOOR_THICKNESS])
           usb_hole();
 
       // Ventilation holes in the bottom
@@ -81,7 +81,7 @@ module lid_boss() {
 }
 
 module usb_hole() {
-  cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
+  cube([ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
 }
 
 module lid_slot() {
