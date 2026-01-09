@@ -53,9 +53,10 @@ module esp_lid() {
     dupont_count = 4; // Количество проводов dupont
     dupont_width = one_dupont_size * dupont_count; // Ширина всех проводов dupont
     dupont_offset = 2; // Отступ от края экрана
+    dupont_clearance = 1; // Зазор между проводами dupont
 
     // Вырез для 4 проводов dupont
     translate([0, OLED_LENGTH / 2 - dupont_offset, 1.5])
-      cube([dupont_width, one_dupont_size, 10], center=true);
+      cube([dupont_width + dupont_clearance, one_dupont_size + dupont_clearance, 10], center=true);
   }
 }
