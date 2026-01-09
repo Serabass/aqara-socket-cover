@@ -1,4 +1,5 @@
 include <constants.scad>;
+
 use <esp-boss.scad>;
 use <fake-esp32.scad>;
 
@@ -45,7 +46,7 @@ module esp_case() {
     if (ESP_LID_MOUNT_TYPE == "magnet")
       color("blue")for (pos = lid_boss_positions)
         translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
-          #lid_boss();
+          lid_boss();
   }
 
   boss_positions = [
@@ -108,7 +109,7 @@ module lid_slot() {
 
 module ventilation_holes(
   width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
-  depth = ESP32_WIDTH + ESP32_WALL_THICKNESS * 2,
+  depth = ESP32_WIDTH + ESP32_WALL_THICKNESS,
   height = GLOBAL_HEIGHT,
   hole_diameter = 3,
   spacing = 6

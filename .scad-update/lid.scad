@@ -27,57 +27,36 @@ module esp_lid() {
   ];
 
   difference() {
-    // Основная пластина крышки
-    cube([lid_width, lid_length, lid_thickness], center=true);
-
-    if (ESP_LID_MOUNT_TYPE == "boss") {
-      // Отверстия для крепления к бобышкам корпуса
-      for (pos = lid_boss_positions) {
-        translate([pos[0], pos[1], 0])
-          cylinder(h=lid_thickness + 1, d=ESP_LID_BOSS_DIAMETER + 0.2, center=true);
-      }
-    } else if (ESP_LID_MOUNT_TYPE == "magnet") {
-      // Отверстия для крепления к магнитам корпуса
-      for (pos = lid_boss_positions) {
-        translate([pos[0], pos[1], -1])
-          cylinder(h=lid_thickness + 1, d=MAGNET_DIAMETER + 0.2, center=true);
-      }
-    }
-  }
-
-  // Крепление для OLED экрана (по центру крышки)
-  translate([0, 0, lid_thickness / 2]) {
-    mount_w = OLED_WIDTH + screen_clearance * 2 + screen_mount_thickness * 2;
-    mount_l = OLED_LENGTH + screen_clearance * 2 + screen_mount_thickness * 2;
-    boss_height = 2;
-    boss_diameter = 4;
-
     difference() {
-      union() {
-        // Внешняя рамка крепления
-        cube([mount_w, mount_l, screen_mount_thickness], center=true);
+      // Основная пластина крышки
+      cube([lid_width, lid_length, lid_thickness], center=true);
 
-        // Бобышки под винты для крепления OLED (соединены с рамкой)
-        for (pos = oled_hole_positions) {
-          translate([pos[0], pos[1], screen_mount_thickness / 2 + boss_height / 2]) {
-            cylinder(h=boss_height, d=boss_diameter, center=true);
-          }
+      if (ESP_LID_MOUNT_TYPE == "boss") {
+        // Отверстия для крепления к бобышкам корпуса
+        for (pos = lid_boss_positions) {
+          translate([pos[0], pos[1], 0])
+            cylinder(h=lid_thickness + 1, d=ESP_LID_BOSS_DIAMETER + 0.2, center=true);
+        }
+      } else if (ESP_LID_MOUNT_TYPE == "magnet") {
+        // Отверстия для крепления к магнитам корпуса
+        for (pos = lid_boss_positions) {
+          translate([pos[0], pos[1], -1])
+            cylinder(h=lid_thickness + 1, d=MAGNET_DIAMETER + 0.2, center=true);
         }
       }
-
-      // Вырез под плату OLED
-      translate([0, 0, -0.5])
-        cube([OLED_WIDTH + screen_clearance * 2, OLED_LENGTH + screen_clearance * 2, screen_mount_thickness + 1], center=true);
-
-      // Вырез для видимой области экрана
-      translate([0, 0, screen_mount_thickness / 2])
-        cube([OLED_DISPLAY_WIDTH, OLED_DISPLAY_LENGTH, screen_mount_thickness + boss_height + 1], center=true);
-
-      // Отверстия под винты для крепления OLED
-      for (pos = oled_hole_positions) {
-        translate([pos[0], pos[1], 0])
-          cylinder(h=screen_mount_thickness + boss_height + 1, d=OLED_MOUNT_HOLE_D, center=true);
-      }
     }
+
+    // Вырез для OLED экрана
+    translate([0, 0, 1.5])
+      cube([OLED_WIDTH + screen_clearance * 2, OLED_LENGTH + screen_clearance * 2, screen_mount_thickness + 1], center=true);
+
+    one_dupont_size = 2.5; // Ширина одного провода dupont
+    dupont_count = 4; // Количество проводов dupont
+    dupont_width = one_dupont_size * dupont_count; // Ширина всех проводов dupont
+    dupont_offset = 1; // Отступ от края экрана
+
+    // Вырез для 4 проводов dupont
+    translate([0, OLED_LENGTH / 2 - dupont_offset, 1.5])
+      cube([dupont_width, one_dupont_size, 10], center=true);
   }
 }
