@@ -15,15 +15,15 @@ difference() {
   //      fake_esp32();
   //      esp_case();
   //      // Рендерим крышку
-  //      translate([0, 0, GLOBAL_HEIGHT])
+  //      //translate([0, 0, GLOBAL_HEIGHT])
   esp_lid();
   //    }
   //  }
-
-  //if (RENDER_AQARA_LOGO)
-  //  rotate([0, 0, 90])
-  //    rotate([90, 90, 0])
-  //      rotate([0, 0, 90])
-  //        translate([-20, 0, AQARA_DIAMETER / 2 + 2])
-  //          aqara_logo();
+  //
+  //  if (RENDER_AQARA_LOGO)
+  //    rotate([0, 0, 90])
+  //      rotate([90, 90, 0])
+  //        rotate([0, 0, 90])
+  //          translate([-20, 0, AQARA_DIAMETER / 2 + 2])
+  //            aqara_logo();
 }
