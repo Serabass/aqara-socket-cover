@@ -21,14 +21,15 @@ module esp_case() {
           cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
       }
 
-      if (ESP32_USB_HOLE_DIRECTION == "left" || ESP32_USB_HOLE_DIRECTION == "both")
       // USB отверстие слева
-      translate([-ESP32_WIDTH, 0, 1])
-        cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
+      if (ESP32_USB_HOLE_DIRECTION == "left" || ESP32_USB_HOLE_DIRECTION == "both")
+        translate([-ESP32_WIDTH, 0, 1])
+          usb_hole();
 
+      // USB отверстие справа
       if (ESP32_USB_HOLE_DIRECTION == "right" || ESP32_USB_HOLE_DIRECTION == "both")
         translate([ESP32_WIDTH, 0, 1])
-          cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
+          usb_hole();
 
       // Ventilation holes in the bottom
       //ventilation_holes();
@@ -65,6 +66,10 @@ module lid_boss() {
     translate([0, 0, -MAGNET_HEIGHT / 2])
       cylinder(h=MAGNET_HEIGHT, d=MAGNET_DIAMETER);
   }
+}
+
+module usb_hole() {
+  cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
 }
 
 module ventilation_holes(
