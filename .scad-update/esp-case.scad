@@ -32,7 +32,9 @@ module esp_case() {
           usb_hole();
 
       // Ventilation holes in the bottom
-      //ventilation_holes();
+      if (VENTILATION) {
+        ventilation_holes();
+      }
     }
 
     if (ESP_LID_MOUNT_TYPE == "magnet")
@@ -93,16 +95,6 @@ module lid_slot() {
       -AQARA_RIM_OUTER_D / 2 + ESP_LID_SLOT_THICKNESS / 2,
       -ESP32_WIDTH / 2,
       GLOBAL_HEIGHT / 2 + ESP_LID_SLOT_THICKNESS / 2,
-    ]
-  )
-    color("green")
-      cube([ESP_LID_SLOT_THICKNESS, ESP_LID_SLOT_WIDTH, ESP_LID_SLOT_THICKNESS], center=true);
-  // нижний слот
-  translate(
-    [
-      0,
-      -ESP32_WIDTH / 2,
-      -GLOBAL_HEIGHT / 2 - ESP_LID_SLOT_THICKNESS / 2,
     ]
   )
     color("green")
