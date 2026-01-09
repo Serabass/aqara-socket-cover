@@ -9,7 +9,7 @@ use <aqara-logo.scad>;
 
 difference() {
   union() {
-    //aqara_rim();
+    aqara_rim();
 
     translate([0, -AQARA_RIM_OUTER_D / 2 - (ESP32_WIDTH / 2 + ESP32_WALL_THICKNESS), 0]) {
       fake_esp32();
@@ -20,10 +20,10 @@ difference() {
     }
   }
 
-  #if(RENDER_AQARA_LOGO)
+  if(RENDER_AQARA_LOGO)
     rotate([0, 0, 90])
       rotate([90, 90, 0])
         rotate([0, 0, 90])
-          translate([-20, 0, AQARA_DIAMETER / 2])
+          translate([-20, 0, AQARA_DIAMETER / 2 + 2])
             aqara_logo();
 }

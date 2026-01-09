@@ -3,8 +3,8 @@ $fn = 64; // Качество окружностей
 GLOBAL_HEIGHT = 25;
 GLOBAL_BOSS_DIAMETER = 2.8;
 
-RENDER_AQARA_LOGO = false;
-VENTILATION = false;
+RENDER_AQARA_LOGO = true;
+VENTILATION = true;
 
 // Aqara розетка
 AQARA_DIAMETER = 60;
