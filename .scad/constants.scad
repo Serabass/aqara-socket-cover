@@ -3,8 +3,8 @@ $fn = 64; // Качество окружностей
 GLOBAL_HEIGHT = 25;
 GLOBAL_BOSS_DIAMETER = 2.8;
 
-RENDER_AQARA_LOGO = false;
-VENTILATION = false;
+RENDER_AQARA_LOGO = true;
+VENTILATION = true;
 
 // Aqara розетка
 AQARA_DIAMETER = 60;
@@ -34,6 +34,7 @@ ESP_LID_BOSS_HEIGHT = 3;
 ESP_LID_MOUNT_TYPE = "boss"; // boss / magnet / slot
 ESP_LID_SLOT_THICKNESS = 2;
 ESP_LID_SLOT_WIDTH = 10;
+ESP_LID_THICKNESS = 2;
 
 // OLED экран
 OLED_WIDTH = 27;
