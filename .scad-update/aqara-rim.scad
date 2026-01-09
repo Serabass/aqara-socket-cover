@@ -22,11 +22,7 @@ module aqara_rim() {
 }
 
 module aqara_button_hole() {
-  difference() {
-    union() {
-      cylinder(h=GLOBAL_HEIGHT, d=AQARA_BUTTON_DIAMETER, center=true);
-    }
-  }
+  cylinder(h=GLOBAL_HEIGHT, d=AQARA_BUTTON_DIAMETER + AQARA_BUTTON_CLEARANCE, center=true);
   rotate([0, 90, 0])
     rotate([0, 0, 90])
       rounded_cutout(AQARA_BUTTON_DIAMETER, AQARA_RIM_THICKNESS, GLOBAL_HEIGHT);
@@ -39,9 +35,9 @@ module rounded_cutout(width, thickness, height) {
 
     // Закругления по краям
     translate([width / 2, 0, 0])
-      cylinder(h=height + 2, d=thickness, center=true);
+      cylinder(h=height + 2, d=thickness * 2, center=true);
 
     translate([-width / 2, 0, 0])
-      cylinder(h=height + 2, d=thickness, center=true);
+      cylinder(h=height + 2, d=thickness * 2, center=true);
   }
 }
