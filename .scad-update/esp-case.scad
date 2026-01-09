@@ -56,6 +56,10 @@ module esp_case() {
     color("red")for (pos = lid_boss_positions)
       translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
         lid_boss();
+
+  if (ESP_LID_MOUNT_TYPE == "slot") {
+    lid_slot();
+  }
 }
 
 module lid_boss() {
@@ -70,6 +74,39 @@ module lid_boss() {
 
 module usb_hole() {
   cube([ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
+}
+
+module lid_slot() {
+  // правый слот
+  translate(
+    [
+      AQARA_RIM_OUTER_D / 2 - ESP_LID_SLOT_THICKNESS / 2,
+      -ESP32_WIDTH / 2,
+      GLOBAL_HEIGHT / 2 + ESP_LID_SLOT_THICKNESS / 2,
+    ]
+  )
+    color("green")
+      cube([ESP_LID_SLOT_THICKNESS, ESP_LID_SLOT_WIDTH, ESP_LID_SLOT_THICKNESS], center=true);
+  // левый слот
+  translate(
+    [
+      -AQARA_RIM_OUTER_D / 2 + ESP_LID_SLOT_THICKNESS / 2,
+      -ESP32_WIDTH / 2,
+      GLOBAL_HEIGHT / 2 + ESP_LID_SLOT_THICKNESS / 2,
+    ]
+  )
+    color("green")
+      cube([ESP_LID_SLOT_THICKNESS, ESP_LID_SLOT_WIDTH, ESP_LID_SLOT_THICKNESS], center=true);
+  // нижний слот
+  translate(
+    [
+      0,
+      -ESP32_WIDTH / 2,
+      -GLOBAL_HEIGHT / 2 - ESP_LID_SLOT_THICKNESS / 2,
+    ]
+  )
+    color("green")
+      cube([ESP_LID_SLOT_THICKNESS, ESP_LID_SLOT_WIDTH, ESP_LID_SLOT_THICKNESS], center=true);
 }
 
 module ventilation_holes(
