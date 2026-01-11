@@ -44,23 +44,22 @@ module esp_case() {
     if (VENTILATION)
       ventilation_holes();
 
-    if (ESP_LID_MOUNT_TYPE == "magnet")
-      color("blue")for (pos = lid_boss_positions)
-        translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
-          lid_boss();
-    for (pos = boss_positions)
-      translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
-        esp_boss(cube_base=true);
-
-    if (ESP_LID_MOUNT_TYPE == "boss")
-      color("red")for (pos = lid_boss_positions)
-        translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
-          lid_boss();
-
     if (ESP_LID_MOUNT_TYPE == "slot") {
       lid_slot();
     }
   }
+  for (pos = boss_positions)
+    translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
+      esp_boss(cube_base=true);
+
+  if (ESP_LID_MOUNT_TYPE == "magnet")
+    color("blue")for (pos = lid_boss_positions)
+      translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
+        lid_boss();
+  if (ESP_LID_MOUNT_TYPE == "boss")
+    color("red")for (pos = lid_boss_positions)
+      translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
+        lid_boss();
 }
 
 // ===== БОБЫШКА ДЛЯ КРЫШКИ =====
