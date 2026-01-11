@@ -112,7 +112,7 @@ module ventilation_holes(
   depth = ESP32_WIDTH + ESP32_WALL_THICKNESS,
   height = GLOBAL_HEIGHT,
   hole_diameter = 3,
-  spacing = 6
+  spacing = 5
 ) {
   rows = floor(depth / spacing);
   cols = floor(width / spacing);
@@ -133,7 +133,7 @@ module ventilation_gaps(
   rows = floor(depth / spacing);
   cols = floor(width / spacing);
 
-  #for(col=[-(cols - 1) / 2:(cols - 1) / 2])
+  for (col = [-(cols - 1) / 2:(cols - 1) / 2])
     translate([col * spacing, 0, -height / 2 - 1])
       cube([hole_width, spacing, height / 2], center=true);
 }
