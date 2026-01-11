@@ -14,43 +14,6 @@ module esp_case() {
     [AQARA_RIM_OUTER_D / 2 - ESP_LID_BOSS_CLEARANCE, (ESP32_WIDTH + ESP32_WALL_THICKNESS * 2) / 2 - ESP_LID_BOSS_CLEARANCE],
   ];
 
-  difference() {
-    difference() {
-      difference() {
-        difference() {
-          // внешний корпус
-          cube([AQARA_RIM_OUTER_D, ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT], center=true);
-          // полость для ESP32
-          translate([0, 0, ESP32_FLOOR_THICKNESS])
-            cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
-        }
-
-        if (VENTILATION)
-          translate([0, -ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT / 2])
-            ventilation_gaps();
-      }
-
-      // USB отверстие слева
-      if (ESP32_USB_HOLE_DIRECTION == "left" || ESP32_USB_HOLE_DIRECTION == "both")
-        translate([-ESP32_LENGTH / 2 - ESP32_WALL_THICKNESS / 2, 0, ESP32_FLOOR_THICKNESS])
-          usb_hole();
-
-      // USB отверстие справа
-      if (ESP32_USB_HOLE_DIRECTION == "right" || ESP32_USB_HOLE_DIRECTION == "both")
-        translate([ESP32_LENGTH / 2 + ESP32_WALL_THICKNESS / 2, 0, ESP32_FLOOR_THICKNESS])
-          usb_hole();
-
-      // Ventilation holes in the bottom
-      if (VENTILATION)
-        ventilation_holes();
-    }
-
-    if (ESP_LID_MOUNT_TYPE == "magnet")
-      color("blue")for (pos = lid_boss_positions)
-        translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
-          lid_boss();
-  }
-
   boss_positions = [
     [-ESP32_LENGTH / 2 + ESP32_BOSS_CLEARANCE, -ESP32_WIDTH / 2 + ESP32_BOSS_CLEARANCE],
     [ESP32_LENGTH / 2 - ESP32_BOSS_CLEARANCE, -ESP32_WIDTH / 2 + ESP32_BOSS_CLEARANCE],
@@ -58,17 +21,45 @@ module esp_case() {
     [ESP32_LENGTH / 2 - ESP32_BOSS_CLEARANCE, ESP32_WIDTH / 2 - ESP32_BOSS_CLEARANCE],
   ];
 
-  for (pos = boss_positions)
-    translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
-      esp_boss(cube_base=true);
+  difference() {
+    // внешний корпус
+    cube([AQARA_RIM_OUTER_D, ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT], center=true);
+    // полость для ESP32
+    translate([0, 0, ESP32_FLOOR_THICKNESS])
+      cube([ESP32_LENGTH + ESP32_CLEARANCE * 2, ESP32_WIDTH + ESP32_CLEARANCE * 2, GLOBAL_HEIGHT], center=true);
 
-  if (ESP_LID_MOUNT_TYPE == "boss")
-    color("red")for (pos = lid_boss_positions)
-      translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
-        lid_boss();
+    if (VENTILATION)
+      translate([0, -ESP32_WIDTH + ESP32_WALL_THICKNESS * 2, GLOBAL_HEIGHT / 2])
+        ventilation_gaps();
+    // USB отверстие слева
+    if (ESP32_USB_HOLE_DIRECTION == "left" || ESP32_USB_HOLE_DIRECTION == "both")
+      translate([-ESP32_LENGTH / 2 - ESP32_WALL_THICKNESS / 2, 0, ESP32_FLOOR_THICKNESS])
+        usb_hole();
+    // USB отверстие справа
+    if (ESP32_USB_HOLE_DIRECTION == "right" || ESP32_USB_HOLE_DIRECTION == "both")
+      translate([ESP32_LENGTH / 2 + ESP32_WALL_THICKNESS / 2, 0, ESP32_FLOOR_THICKNESS])
+        usb_hole();
 
-  if (ESP_LID_MOUNT_TYPE == "slot") {
-    lid_slot();
+    // Ventilation holes in the bottom
+    if (VENTILATION)
+      ventilation_holes();
+
+    if (ESP_LID_MOUNT_TYPE == "magnet")
+      color("blue")for (pos = lid_boss_positions)
+        translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
+          lid_boss();
+    for (pos = boss_positions)
+      translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
+        esp_boss(cube_base=true);
+
+    if (ESP_LID_MOUNT_TYPE == "boss")
+      color("red")for (pos = lid_boss_positions)
+        translate([pos[0], pos[1], GLOBAL_HEIGHT / 2])
+          lid_boss();
+
+    if (ESP_LID_MOUNT_TYPE == "slot") {
+      lid_slot();
+    }
   }
 }
 
