@@ -1,5 +1,6 @@
 include <constants.scad>;
 
+// ===== ОБОД AQARA =====
 module aqara_rim() {
   difference() {
     difference() {
@@ -21,6 +22,7 @@ module aqara_rim() {
   }
 }
 
+// ===== ОТВЕРСТИЕ ДЛЯ КНОПКИ AQARA =====
 module aqara_button_hole() {
   cylinder(h=GLOBAL_HEIGHT, d=AQARA_BUTTON_DIAMETER + AQARA_BUTTON_CLEARANCE, center=true);
   rotate([0, 90, 0])
@@ -28,7 +30,7 @@ module aqara_button_hole() {
       rounded_cutout(AQARA_BUTTON_DIAMETER, AQARA_RIM_THICKNESS, GLOBAL_HEIGHT);
 }
 
-// ===== ВСПОМОГАТЕЛЬНЫЙ МОДУЛЬ ДЛЯ ЗАКРУГЛЕНИЯ =====
+// ===== ЗАКРУГЛЕНИЕ =====
 module rounded_cutout(width, thickness, height) {
   difference() {
     cube([width, thickness + 1, height + 2], center=true);

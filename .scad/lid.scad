@@ -1,6 +1,6 @@
 include <constants.scad>;
 
-// Крышка для ESP корпуса с креплением для OLED экрана
+// ===== КРЫШКА ДЛЯ ESP32 =====
 module esp_lid() {
   screen_mount_thickness = 2; // Толщина крепления экрана
   screen_clearance = 0.3; // Зазор между платой и креплением

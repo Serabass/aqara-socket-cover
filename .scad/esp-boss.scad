@@ -1,6 +1,6 @@
-// бобышка
 include <constants.scad>;
 
+// ===== БОБЫШКА ДЛЯ ESP32 =====
 module esp_boss(cube_base = false)
   color("blue")
     union() {

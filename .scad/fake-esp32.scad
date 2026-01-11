@@ -2,6 +2,7 @@ include <constants.scad>;
 use <esp-boss.scad>;
 use <preview.scad>;
 
+// ===== ФЕЙКОВЫЙ ESP32 =====
 module fake_esp32() {
   boss_positions = [
     [-ESP32_LENGTH / 2 + ESP32_BOSS_CLEARANCE, -ESP32_WIDTH / 2 + ESP32_BOSS_CLEARANCE],

@@ -3,6 +3,7 @@ include <constants.scad>;
 use <esp-boss.scad>;
 use <fake-esp32.scad>;
 
+// ===== КОРПУС ESP32 =====
 module esp_case() {
   // Бобышки для крышки в верхней части
   lid_boss_positions = [
@@ -70,6 +71,7 @@ module esp_case() {
   }
 }
 
+// ===== БОБЫШКА ДЛЯ КРЫШКИ =====
 module lid_boss() {
   if (ESP_LID_MOUNT_TYPE == "boss") {
     translate([0, 0, -ESP_LID_BOSS_HEIGHT / 2])
@@ -80,10 +82,12 @@ module lid_boss() {
   }
 }
 
+// ===== USB ОТВЕРСТИЕ =====
 module usb_hole() {
   cube([ESP32_WALL_THICKNESS * 2, ESP32_USB_HOLE_WIDTH, GLOBAL_HEIGHT], center=true);
 }
 
+// ===== СЛОТ ДЛЯ КРЫШКИ =====
 module lid_slot() {
   // правый слот
   translate(
@@ -107,6 +111,7 @@ module lid_slot() {
       cube([ESP_LID_SLOT_THICKNESS, ESP_LID_SLOT_WIDTH, ESP_LID_SLOT_THICKNESS], center=true);
 }
 
+// ===== ВЕНТИЛЯЦИОННЫЕ ОТВЕРСТИЯ =====
 module ventilation_holes(
   width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
   depth = ESP32_WIDTH + ESP32_WALL_THICKNESS,
@@ -123,6 +128,7 @@ module ventilation_holes(
         cylinder(h=height + 2, d=hole_diameter, center=true);
 }
 
+// ===== ВЕНТИЛЯЦИОННЫЕ ПРОМЕЖУТКИ =====
 module ventilation_gaps(
   width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
   depth = ESP32_WIDTH + ESP32_WALL_THICKNESS * 2,
