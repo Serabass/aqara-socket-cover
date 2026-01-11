@@ -4,7 +4,7 @@ GLOBAL_HEIGHT = 25;
 GLOBAL_BOSS_DIAMETER = 2.8;
 
 RENDER_AQARA_LOGO = true;
-RENDER_LID = true;
+RENDER_LID = false;
 VENTILATION = true;
 
 // Aqara розетка
@@ -44,7 +44,7 @@ OLED_HEIGHT = 4;
 OLED_DISPLAY_WIDTH = 25; // Видимая область экрана
 OLED_DISPLAY_LENGTH = 25;
 OLED_MOUNT_HOLE_D = 2.2; // Отверстия под винты на плате OLED
-OLED_MOUNT_HOLE_OFFSET = 2; // Отступ отверстий от края платы
+OLED_MOUNT_HOLE_OFFSET = 2.4; // Отступ отверстий от края платы
 
 // Бобышка
 BOSS_BASE_DIAMETER = 8;

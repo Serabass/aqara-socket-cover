@@ -57,4 +57,10 @@ module esp_lid() {
     translate([0, OLED_LENGTH / 2 - dupont_offset, 1.5])
       cube([dupont_width + dupont_clearance, one_dupont_size + dupont_clearance, 10], center=true);
   }
+
+  // Бобышки для крепления экрана
+  for (pos = oled_hole_positions) {
+    translate([pos[0], pos[1], 0])
+      cylinder(h=ESP_LID_THICKNESS, d=OLED_MOUNT_HOLE_D + 0.2, center=true);
+  }
 }
