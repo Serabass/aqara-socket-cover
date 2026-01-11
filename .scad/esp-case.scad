@@ -48,6 +48,7 @@ module esp_case() {
       lid_slot();
     }
   }
+
   for (pos = boss_positions)
     translate([pos[0], pos[1], -GLOBAL_HEIGHT / 2])
       esp_boss(cube_base=true);
