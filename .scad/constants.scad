@@ -4,6 +4,7 @@ GLOBAL_HEIGHT = 25;
 GLOBAL_BOSS_DIAMETER = 2.8;
 
 RENDER_AQARA_LOGO = true;
+RENDER_LID = true;
 VENTILATION = true;
 
 // Aqara розетка

@@ -2,6 +2,7 @@ include <constants.scad>;
 
 use <esp-boss.scad>;
 use <fake-esp32.scad>;
+use <ventilation.scad>;
 
 // ===== КОРПУС ESP32 =====
 module esp_case() {
@@ -109,37 +110,4 @@ module lid_slot() {
   )
     color("green")
       cube([ESP_LID_SLOT_THICKNESS, ESP_LID_SLOT_WIDTH, ESP_LID_SLOT_THICKNESS], center=true);
-}
-
-// ===== ВЕНТИЛЯЦИОННЫЕ ОТВЕРСТИЯ =====
-module ventilation_holes(
-  width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
-  depth = ESP32_WIDTH + ESP32_WALL_THICKNESS,
-  height = GLOBAL_HEIGHT,
-  hole_diameter = 3,
-  spacing = 5
-) {
-  rows = floor(depth / spacing);
-  cols = floor(width / spacing);
-
-  for (row = [-(rows - 1) / 2:(rows - 1) / 2])
-    for (col = [-(cols - 1) / 2:(cols - 1) / 2])
-      translate([col * spacing, row * spacing, -height / 2 - 1])
-        cylinder(h=height + 2, d=hole_diameter, center=true);
-}
-
-// ===== ВЕНТИЛЯЦИОННЫЕ ПРОМЕЖУТКИ =====
-module ventilation_gaps(
-  width = AQARA_RIM_OUTER_D - ESP32_WALL_THICKNESS * 4,
-  depth = ESP32_WIDTH + ESP32_WALL_THICKNESS * 2,
-  height = GLOBAL_HEIGHT,
-  hole_width = 2,
-  spacing = 7
-) {
-  rows = floor(depth / spacing);
-  cols = floor(width / spacing);
-
-  for (col = [-(cols - 1) / 2:(cols - 1) / 2])
-    translate([col * spacing, 0, -height / 2 - 1])
-      cube([hole_width, spacing, height / 2], center=true);
 }
